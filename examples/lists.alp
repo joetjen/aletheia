@@ -1,0 +1,16 @@
+% List processing beyond the v0.1 builtins -- ordinary recursive
+% predicates, exactly how you'd write them in any Prolog, built on the
+% builtin length/2, append/3, member/2, reverse/2, nth0/3, nth1/3, last/2.
+
+sum([], 0).
+sum([H|T], Sum) :- sum(T, Rest), Sum is H + Rest.
+
+max_of([X], X).
+max_of([H|T], Max) :- max_of(T, TailMax), Max is max(H, TailMax).
+
+double_all([], []).
+double_all([H|T], [D|DT]) :- D is H * 2, double_all(T, DT).
+
+count(_, [], 0).
+count(X, [X|T], N) :- !, count(X, T, N0), N is N0 + 1.
+count(X, [_|T], N) :- count(X, T, N).

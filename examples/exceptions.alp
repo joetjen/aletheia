@@ -1,0 +1,14 @@
+% Guarding against bad input with catch/3 and the standard error terms.
+
+safe_div(_, Y, undefined) :- \+ number(Y), !.
+safe_div(X, Y, R) :- catch(R is X / Y, error(_, _), R = undefined).
+
+safe_head([], none).
+safe_head([H|_], H).
+
+% is/2 throws a type_error(evaluable, _) for a non-numeric,
+% non-evaluable expression -- catch/3 recovers with a sentinel value,
+% which the if-then-else below turns into R = undefined.
+safe_eval(Expr, R) :-
+  catch(R0 is Expr, error(type_error(evaluable, _), _), R0 = caught),
+  (R0 == caught -> R = undefined ; R = R0).
