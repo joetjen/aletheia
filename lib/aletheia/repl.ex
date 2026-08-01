@@ -5,7 +5,7 @@ defmodule Aletheia.Repl do
   `;` for the next solution or any other input to stop.
   """
 
-  alias Aletheia.{Database, Term}
+  alias Episteme.{Database, Term}
 
   @spec start([String.t()]) :: :ok
   def start(paths \\ []) do

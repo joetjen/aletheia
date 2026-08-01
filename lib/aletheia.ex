@@ -1,16 +1,22 @@
 defmodule Aletheia do
   @moduledoc """
   Top-level API: `consult/1`/`consult_string/2` load source into an
-  `Aletheia.Database`, `query/2` solves a goal against one. Uncaught
-  Prolog exceptions (a real `throw/1` no `catch/3` in the program
-  itself caught) surface as `{:error, term}` here, at the outermost
-  boundary, rather than as a raw Elixir `throw` escaping to the caller.
+  `Episteme.Database`, `query/2` solves a goal (source text or an
+  already-parsed term) against one. Parses text via `Aletheia.Reader`
+  and delegates the actual solving to `Episteme`, the standalone
+  engine/database package this reader is a front-end for -- everything
+  past parsing (terms, unification, SLD-resolution, cut, builtins) lives
+  there, not here. Uncaught Prolog exceptions (a real `throw/1` no
+  `catch/3` in the program itself caught) surface as `{:error, term}`
+  here, at the outermost boundary, rather than as a raw Elixir `throw`
+  escaping to the caller.
   """
 
-  alias Aletheia.{Database, Engine, Reader, Term}
+  alias Aletheia.Reader
+  alias Episteme.{Database, Term}
   alias Ichor.Backtrack.Tree
 
-  @type solution :: %{optional(String.t()) => term()}
+  @type solution :: Episteme.solution()
 
   @doc "Loads a `.alp` source file into a fresh database."
   @spec consult(String.t()) :: {:ok, Database.t()} | {:error, term()}
@@ -30,21 +36,18 @@ defmodule Aletheia do
   @doc """
   Solves `goal` (source text or an already-parsed term) against `db`,
   returning every solution's variable bindings as `%{name => term}`
-  maps (`Aletheia.Term.to_text/1`-ready values, already fully resolved).
+  maps (`Episteme.Term.to_text/1`-ready values, already fully resolved).
   A real Prolog `throw/1` that escapes uncaught surfaces as `{:error, term}`.
   """
   @spec query(String.t() | term(), Database.t()) :: {:ok, [solution()]} | {:error, term()}
   def query(goal, db) when is_binary(goal) do
     case parse_goal(goal) do
-      {:ok, term} -> wrap_query_result(run_query(term, db))
+      {:ok, term} -> Episteme.query(term, db)
       {:error, _} = err -> err
     end
   end
 
-  def query(goal, db), do: wrap_query_result(run_query(goal, db))
-
-  defp wrap_query_result({:error, _} = err), do: err
-  defp wrap_query_result(solutions) when is_list(solutions), do: {:ok, solutions}
+  def query(goal, db), do: Episteme.query(goal, db)
 
   @doc "Like `query/2`, but returns only the first solution (or `:none`)."
   @spec query_once(String.t() | term(), Database.t()) ::
@@ -68,34 +71,17 @@ defmodule Aletheia do
           {:ok, {Tree.t(), MapSet.t(Term.Var.t())}} | {:error, term()}
   def query_lazy(goal, db) when is_binary(goal) do
     case parse_goal(goal) do
-      {:ok, term} -> {:ok, lazy_stream(term, db)}
+      {:ok, term} -> {:ok, Episteme.query_lazy(term, db)}
       {:error, _} = err -> err
     end
   end
 
-  def query_lazy(goal, db), do: {:ok, lazy_stream(goal, db)}
+  def query_lazy(goal, db), do: {:ok, Episteme.query_lazy(goal, db)}
 
-  defp lazy_stream(goal_term, db) do
-    {Engine.solve_query(goal_term, db), collect_named_vars(goal_term, MapSet.new())}
-  end
-
-  @doc """
-  Pulls one solution from a `query_lazy/2` stream: `{:solution, bindings,
-  rest}`, `:none` when exhausted, or `{:error, term}` for an uncaught
-  Prolog exception raised while solving *this* solution (each pull is
-  independently guarded, since a lazy caller may pull solutions across
-  arbitrarily many separate calls, unlike `query/2`'s one eager pass).
-  """
+  @doc "Pulls one solution from a `query_lazy/2` stream -- see `Episteme.next_solution/2`."
   @spec next_solution(Tree.t(), MapSet.t(Term.Var.t())) ::
           {:solution, solution(), Tree.t()} | :none | {:error, term()}
-  def next_solution(stream, vars) do
-    case Tree.next(stream) do
-      :empty -> :none
-      {:solution, bindings, rest} -> {:solution, solution_map(bindings, vars), rest}
-    end
-  catch
-    {:aletheia_throw, ball} -> {:error, ball}
-  end
+  defdelegate next_solution(stream, vars), to: Episteme
 
   # A query goal has to parse through the reader's own full-priority
   # `term` rule (comma/semicolon/arrow all allowed at the top, exactly
@@ -111,45 +97,4 @@ defmodule Aletheia do
       {:error, _} = err -> err
     end
   end
-
-  defp run_query(goal_term, db) do
-    {stream, vars} = lazy_stream(goal_term, db)
-    collect_all(stream, vars)
-  end
-
-  defp collect_all(stream, vars) do
-    case next_solution(stream, vars) do
-      :none ->
-        []
-
-      {:error, _} = err ->
-        err
-
-      {:solution, solution, rest} ->
-        case collect_all(rest, vars) do
-          {:error, _} = err -> err
-          more -> [solution | more]
-        end
-    end
-  end
-
-  defp solution_map(bindings, vars) do
-    Map.new(vars, fn %Term.Var{ref: ref, name: name} ->
-      {name, Term.resolve_deep(%Term.Var{ref: ref, name: name}, bindings)}
-    end)
-  end
-
-  defp collect_named_vars(%Term.Var{name: name} = var, acc) do
-    if name == "_", do: acc, else: MapSet.put(acc, var)
-  end
-
-  defp collect_named_vars(%Term.Compound{args: args}, acc) do
-    Enum.reduce(args, acc, &collect_named_vars/2)
-  end
-
-  defp collect_named_vars(list, acc) when is_list(list) do
-    Enum.reduce(list, acc, &collect_named_vars/2)
-  end
-
-  defp collect_named_vars(_other, acc), do: acc
 end

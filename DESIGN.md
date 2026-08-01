@@ -32,8 +32,18 @@ project:
   host_platform: BEAM
   status: v0.1 implemented and tested (see roadmap); v0.2+ not started
   local_path: "~/Projects/__mine__/aletheia"
-  hard_dependency: "ichor_runtime ~> 0.1.0 (real runtime dep, own Hex package/repo) + ichor ~> 0.2.0 (only: :dev, runtime: false) -- both published to Hex; see ichor_runtime_split"
+  hard_dependency: "ichor_runtime ~> 0.1.0 (real runtime dep, own Hex package/repo) + ichor ~> 0.2.0 (only: :dev, runtime: false) -- both published to Hex; see ichor_runtime_split -- plus episteme (path dep onto a sibling checkout, not yet on Hex), the standalone engine/database this package's reader is a front-end for; see episteme_split"
   license: MIT (see LICENSE)
+```
+
+```toon
+sibling_project:
+  name: Episteme
+  meaning: "Greek: structured/justified knowledge, root of 'epistemology'"
+  relationship: "the standalone resolution engine and clause database Aletheia's reader is a syntax front-end for -- see episteme_split (decisions_log) and 3.1"
+  hex_package_name: episteme
+  local_path: "~/Projects/__mine__/episteme"
+  design_reference: "episteme's own repository does not (yet) have its own DESIGN.md; this file's 3.1/6/11 sections are the record of what moved there and why, until it does"
 ```
 
 ## 2. Philosophy
@@ -54,12 +64,15 @@ not that all of it ships at once — see `roadmap`.
 ## 3. Architecture
 
 Two genuinely separate pieces sit on top of Ichor: a **reader** (text →
-term data, using Ichor's lexer and Pratt parser directly) and a
-**resolution engine** (term data + clause database → solutions, using
-Ichor's `Backtrack` search substrate plus Aletheia's own SLD-resolution
-layer, clause database, and builtin predicates — none of which Ichor
-provides, since Ichor's own `Actions` evaluation model is a single-pass
-fold and cannot represent multi-solution backtracking search on its own).
+term data, using Ichor's lexer and Pratt parser directly — this stays
+in the `aletheia` package) and a **resolution engine** (term data +
+clause database → solutions, using Ichor's `Backtrack` search substrate
+plus SLD-resolution, clause database, and builtin predicates — none of
+which Ichor provides, since Ichor's own `Actions` evaluation model is a
+single-pass fold and cannot represent multi-solution backtracking
+search on its own). As of `episteme_split` (decisions_log; see 3.1),
+the second piece is its own package, `episteme`, with no dependency on
+the first.
 
 ### 3.0 The `ichor`/`ichor_runtime` split
 
@@ -99,25 +112,55 @@ of them have any dev-only dependency of their own. See `decisions_log`.
 ```toon
 pipeline[5]{stage,module,provided_by,status}:
   lex+parse_term,"lib/aletheia/reader/grammar_generated.ex (mix ichor.gen output, checked in) via Aletheia.Reader.Grammar.run_sequence/2 + Ichor.Toolkit.Pratt via @native",aletheia+ichor_runtime,implemented
-  term_ir,Aletheia.Term,aletheia,implemented
+  term_ir,Episteme.Term,episteme,implemented
   unify,Ichor.Backtrack.Bindings,ichor_runtime,available
   search,Ichor.Backtrack.Tree,ichor_runtime,available
-  resolve,Aletheia.Engine (SLD-resolution over Backtrack primitives + clause DB + cut barriers),aletheia,implemented
+  resolve,Episteme.Engine (SLD-resolution over Backtrack primitives + clause DB + cut barriers),episteme,implemented
 ```
 
 ```toon
-ichor_primitives[8]{module,role,prolog_concept,status}:
-  Aletheia.Reader.Grammar.run_sequence/2,"mix ichor.gen-generated equivalent of Grammar.VM.run_sequence/4 -- parses source as a sequence of top-level clauses, threading context (the growing op/3 operator table) from each into the next",reader driver,implemented (generated ahead of time, not at compile time)
-  Ichor.Toolkit.Pratt,"precedence-climbing parse over a runtime-mutable prefix/infix/postfix operator table",op/3-driven term reading,"available (ichor_runtime, moved from ichor -- see 3.0)"
-  Ichor.Backtrack,"behaviour: unit/fail/disjunction/conjunction/once over a goal := bindings -> solutions",true/fail/;//,/cut-ish,"available (ichor_runtime, moved from ichor -- see 3.0)"
-  Ichor.Backtrack.Tree,"concrete engine: manually-unfolded lazy search tree, depth-first clause-order",SLD search tree,"available (ichor_runtime, moved from ichor -- see 3.0)"
-  Ichor.Backtrack.Bindings,"structural unification; occurs-check off by default (matches ISO), occurs-check variant available",=/2 and unify_with_occurs_check/2,"available (ichor_runtime, moved from ichor -- see 3.0)"
-  Ichor.Backtrack.Term,"behaviour: variable?/1, var_id/1, compound?/1, deconstruct/1, reconstruct/2 (optional)",pluggable term representation,implemented_by_aletheia (Aletheia.Term; lists decompose as '.'/2)
-  Ichor.Toolkit.TermWalk,"fold/2 and rewrite/3 over any Backtrack.Term implementation",variable-renaming-apart on clause instantiation + resolve_deep/2,"implemented_and_used (ichor_runtime, moved from ichor -- see 3.0)"
-  Ichor.Toolkit.Result,"Result.reduce_ok and friends over {:ok,_}/:fail-shaped pipelines",used inside Bindings.unify_compound; reusable in engine code,available (ichor_runtime)
+ichor_primitives[8]{module,role,prolog_concept,status,consumed_by}:
+  Aletheia.Reader.Grammar.run_sequence/2,"mix ichor.gen-generated equivalent of Grammar.VM.run_sequence/4 -- parses source as a sequence of top-level clauses, threading context (the growing op/3 operator table) from each into the next",reader driver,implemented (generated ahead of time, not at compile time),aletheia
+  Ichor.Toolkit.Pratt,"precedence-climbing parse over a runtime-mutable prefix/infix/postfix operator table",op/3-driven term reading,"available (ichor_runtime, moved from ichor -- see 3.0)",aletheia
+  Ichor.Backtrack,"behaviour: unit/fail/disjunction/conjunction/once over a goal := bindings -> solutions",true/fail/;//,/cut-ish,"available (ichor_runtime, moved from ichor -- see 3.0)",episteme
+  Ichor.Backtrack.Tree,"concrete engine: manually-unfolded lazy search tree, depth-first clause-order",SLD search tree,"available (ichor_runtime, moved from ichor -- see 3.0)",episteme
+  Ichor.Backtrack.Bindings,"structural unification; occurs-check off by default (matches ISO), occurs-check variant available",=/2 and unify_with_occurs_check/2,"available (ichor_runtime, moved from ichor -- see 3.0)",episteme
+  Ichor.Backtrack.Term,"behaviour: variable?/1, var_id/1, compound?/1, deconstruct/1, reconstruct/2 (optional)",pluggable term representation,implemented_by_episteme (Episteme.Term; lists decompose as '.'/2),episteme
+  Ichor.Toolkit.TermWalk,"fold/2 and rewrite/3 over any Backtrack.Term implementation",variable-renaming-apart on clause instantiation + resolve_deep/2,"implemented_and_used (ichor_runtime, moved from ichor -- see 3.0)",episteme
+  Ichor.Toolkit.Result,"Result.reduce_ok and friends over {:ok,_}/:fail-shaped pipelines",used inside Bindings.unify_compound; reusable in engine code,available (ichor_runtime),episteme
 ```
 
-### 3.1 Known hard problem: cut vs `once/1`
+### 3.1 The `aletheia`/`episteme` split
+
+`Aletheia.Term`, `Aletheia.Database`, `Aletheia.Engine`, and
+`Aletheia.Builtins.*` moved out of this repository entirely, into a new
+sibling package, `episteme` (`Episteme.Term`, `Episteme.Database`,
+`Episteme.Engine`, `Episteme.Builtins.*`, plus a top-level `Episteme`
+module exposing `query/2`/`query_once/2`/`query_lazy/2`/
+`next_solution/2` over an already-built term goal — the same shape as
+this package's own top-level `Aletheia` module, minus the text-parsing
+step). See `episteme_split` in `decisions_log` for the date and
+rationale; see `11` for what `aletheia`'s own module layout looks like
+after the move.
+
+The motivating distinction: nothing about unification, SLD-resolution,
+the clause database, cut, or the builtin predicates depends on Aletheia
+concretely being classic Prolog *syntax* — `Episteme.Database` is built
+from `{:fact, head}`/`{:rule, head, body}` forms or directly via
+`add_clause/2`/`add_fact/2`, and a goal is always an already-built term,
+never source text. Aletheia's reader is one way to produce those terms;
+it is not the only possible one, and Episteme has zero knowledge of it.
+Splitting them means Episteme is independently useful as a Prolog-like
+rule engine/query layer in Elixir for anyone who does not want
+Aletheia's `.alp` syntax at all, and keeps this repository's own scope
+honestly limited to "the syntax front-end."
+
+`aletheia`'s own dependency on `episteme` is a path dependency onto a
+sibling checkout for now (`{:episteme, path: "../episteme"}`), same as
+Aletheia's own current pre-Hex-release installation story — see
+`decisions_log`.
+
+### 3.2 Known hard problem: cut vs `once/1`
 
 ```toon
 risk:
@@ -125,10 +168,10 @@ risk:
   severity: high
   statement: "Ichor.Backtrack.once/1 is Prolog's once/1 builtin (first solution of a goal), not Prolog's ! (cut). Cut commits to choices made since entering the CURRENT CLAUSE specifically — a narrower, clause-scoped commitment, not 'stop after one solution of whatever goal contains it'. once/1 will pass naive tests and diverge on nested-clause cases."
   mitigation: "Design cut as a distinct primitive in Aletheia.Engine: thread a clause-scoped cut barrier/signal through conjunction that once/1 alone does not provide. Do not implement ! as a thin wrapper over Backtrack.once/1 without a barrier check. Write cut-specific tests (cut inside disjunction inside a clause; cut inside a called predicate must NOT affect the caller) before considering cut done."
-  status: "resolved -- implemented via throw/catch barriers (see decisions_log cut_implementation), both named tests plus the p:-!,fail. p:-true. distinguishing case pass (test/aletheia/cut_test.exs)"
+  status: "resolved -- implemented via throw/catch barriers (see decisions_log cut_implementation), both named tests plus the p:-!,fail. p:-true. distinguishing case pass (now in episteme's own repo, test/episteme/cut_test.exs, since Episteme.Engine owns cut -- see episteme_split)"
 ```
 
-### 3.2 Known hard problem: atom exhaustion
+### 3.3 Known hard problem: atom exhaustion
 
 ```toon
 risk:
@@ -141,13 +184,18 @@ risk:
 
 ## 4. Term representation
 
+This is `Episteme.Term`'s representation now (see `episteme_split`),
+not Aletheia's own -- Aletheia's reader produces exactly these shapes
+but the type definitions and the `Ichor.Backtrack.Term` implementation
+both live in the `episteme` package.
+
 ```toon
 terms[6]{prolog_term,elixir_representation,notes}:
   atom,":name (raw Elixir atom)","see risk atom-table-exhaustion"
   integer,integer,"native BEAM bignum, no overflow handling needed"
   float,float,"native; IEEE 754 double, matches ISO float semantics closely enough for v0.1"
-  variable,"%Aletheia.Term.Var{ref: reference(), name: String.t()}","ref is var_id/1 for Backtrack.Term; name is display-only, never used for identity"
-  compound,"%Aletheia.Term.Compound{name: atom(), args: [term]}","deconstruct/1 -> {name,args}; reconstruct/2 rebuilds"
+  variable,"%Episteme.Term.Var{ref: reference(), name: String.t()}","ref is var_id/1 for Backtrack.Term; name is display-only, never used for identity"
+  compound,"%Episteme.Term.Compound{name: atom(), args: [term]}","deconstruct/1 -> {name,args}; reconstruct/2 rebuilds"
   list,"[h | t] using native Elixir lists","proper AND improper lists both representable natively; [] is the empty-list atom, same as Prolog"
 ```
 
@@ -322,7 +370,7 @@ interop:
 ## 9. Decisions log
 
 ```toon
-decisions_log[15]{date,decision,choice,status}:
+decisions_log[16]{date,decision,choice,status}:
   2026-07-27,embedding_model,"classic Prolog syntax via reader (not Elixir-native macros)",final
   2026-07-27,engine_strategy,"tree-walking / lazy-search interpreter (not WAM bytecode compilation)",final_for_v0.1-v0.5
   2026-07-27,initial_scope,"minimal true core first, staged expansion need-first (not full-ISO-upfront)",final
@@ -338,6 +386,7 @@ decisions_log[15]{date,decision,choice,status}:
   2026-07-29,ichor_runtime_hex_release,"both packages published independently to Hex -- ichor 0.2.1 (Aether front-end, Grammar.Analysis, both codegen backends, plus new Ichor.GrammarImport for ABNF/BNF/EBNF/PEG sources; still only: :dev, runtime: false here) and ichor_runtime 0.1.0 (now its own repository, github.com/joetjen/ichor_runtime, not a subdirectory of ichor's; the sole real runtime dependency). mix.exs deps simplified from git+branch+sparse+override to plain {:ichor_runtime, \"~> 0.1.0\"} / {:ichor, \"~> 0.2.0\", only: :dev, runtime: false}. Regenerated grammar_generated.ex against the published mix ichor.gen to confirm codegen output is unaffected by the version bump; full precommit (format/credo --strict/sobelow/test/dialyzer) still clean",final
   2026-07-28,cut_implementation,"! succeeds once, but its own backtrack-past-me continuation throws {:aletheia_cut, barrier} (a barrier = make_ref() minted fresh per predicate call / call//N / once/1 / \\+ per ISO cut-opacity); Aletheia.Engine.guard_cut/2 wraps each call's own lazy solution stream, catching only its own barrier and re-throwing anything else. Ichor.Backtrack.Tree's combinators need zero changes: they're plain function calls with no try inside them, so a throw passes through conjunction/disjunction/once untouched. A bindings-borne \"cut fired\" marker was considered and rejected: `p :- !, fail.` with a second clause `p :- true.` must fail p outright, but a clause body that never produces a solution gives a marker-on-solutions scheme nothing to inspect -- cut has an effect even along a path that ultimately fails",final
   2026-07-28,control_constructs_module_placement,"true/fail/,/;/->/!/\\+/call/once live directly in Aletheia.Engine, not a separate Builtins.Control module as DESIGN.md's original module-layout table sketched -- once actually implemented they turned out inseparable from the cut-barrier machinery (guard_cut, fresh barriers per call), not independent predicates dispatchable through a generic table",final
+  2026-08-01,episteme_split,"split Aletheia.Term/Database/Engine/Builtins.* out into a new sibling package, episteme (Episteme.Term/Database/Engine/Builtins.*, plus a top-level Episteme module mirroring Aletheia's own query/2 family but over already-built terms, no text parsing). Rationale: none of unification/SLD-resolution/clause storage/cut/builtins depend on Aletheia's syntax concretely -- Aletheia's reader is one producer of Episteme terms, not the only possible one, and the split lets Episteme stand alone as a Prolog-like rule engine/query layer for Elixir callers who don't want .alp syntax at all. Internal-only Elixir throw tags renamed :aletheia_throw/:aletheia_cut -> :episteme_throw/:episteme_cut (Episteme.Engine/Episteme.Builtins.Exceptions), since they're now Episteme's own implementation detail, not Aletheia's. aletheia depends on episteme via {:episteme, path: \"../episteme\"} (both still pre-Hex-release); ichor_runtime is now a dependency of both packages directly (episteme for Backtrack/TermWalk, aletheia for Toolkit.Pratt in the reader itself) -- see 3.1",final
 ```
 
 ## 10. Glossary (Prolog terms, for an agent without Prolog background)
@@ -360,21 +409,20 @@ glossary[12]{term,meaning}:
 
 ## 11. Planned module layout
 
+Only `aletheia`'s own modules are listed here (the reader, REPL, and
+top-level API) -- `Episteme.Term`/`Database`/`Engine`/`Builtins.*` moved
+to the separate `episteme` package as of `episteme_split`
+(decisions_log) and are that repository's own module layout to
+document, not this one's.
+
 ```toon
-modules[15]{path,purpose,milestone}:
-  lib/aletheia.ex,"top-level API: consult/1, consult_string/2, query/2, query_once/2, query_lazy/2 + next_solution/2",v0.1
+modules[8]{path,purpose,milestone}:
+  lib/aletheia.ex,"top-level API: consult/1, consult_string/2, query/2, query_once/2, query_lazy/2 + next_solution/2 -- parses via Aletheia.Reader, delegates solving to Episteme (query/query_lazy/next_solution are thin wrappers over Episteme's own, query_once reuses this module's own query/2)",v0.1
   lib/aletheia/reader.ex,"exposes consult_string/2 over Aletheia.Reader.Grammar.run_sequence/2 (the generated module below)",v0.1
   lib/aletheia/reader/grammar.aether,"the real Aletheia lexical+syntactic grammar (Aether) -- source grammar, hand-edited",v0.1
   lib/aletheia/reader/grammar_generated.ex,"mix ichor.gen (mix gen.grammar) output from grammar.aether -- checked in, not regenerated on mix compile; only calls ichor_runtime at actual runtime",v0.1
   lib/aletheia/reader/pratt.ex,"the term/arg_term @native(...) callback over Ichor.Toolkit.Pratt",v0.1
-  lib/aletheia/reader/actions.ex,"Ichor.Actions impl: raw capture tree -> Aletheia.Term, default operator table, op/3 directive application, per-clause variable freshening",v0.1
-  lib/aletheia/term.ex,"Term IR + Ichor.Backtrack.Term implementation (incl. list-as-'.'/2 encoding), resolve_deep/2, fresh_copy/1, structurally_equal?/2",v0.1
-  lib/aletheia/database.ex,"clause storage/indexing (populated by consult; assert/retract callable predicates are v0.2)",v0.1
-  lib/aletheia/engine.ex,"SLD-resolution over Ichor.Backtrack + clause DB; true/fail/,/;/-> /!/\\+/call/once and the cut-barrier/guard_cut mechanism all live here directly, not in a separate builtins module -- see decisions_log control_constructs_module_placement",v0.1
-  lib/aletheia/builtins/arithmetic.ex,"is/2 evaluator + the six arithmetic comparisons",v0.1
-  lib/aletheia/builtins/exceptions.ex,"type_error/2, domain_error/2, instantiation_error/1, existence_error/2 (term constructors) + the real throw/catch Elixir tag",v0.1
-  lib/aletheia/builtins/lists.ex,"length/2 append/3 member/2 reverse/2 nth0/3 nth1/3 last/2",v0.1
-  lib/aletheia/builtins/io.ex,"write/1 writeln/1 print/1 nl/0 (canonical-form text only, no operator-aware pretty-printing yet)",v0.1
+  lib/aletheia/reader/actions.ex,"Ichor.Actions impl: raw capture tree -> Episteme.Term, default operator table, op/3 directive application, per-clause variable freshening",v0.1
   lib/aletheia/repl.ex,"consult + interactive query loop, genuinely lazy (pulls one solution at a time via query_lazy/2+next_solution/2)",v0.1
   test/support/query_helper.ex,"consult+query test shorthand",n/a
 ```

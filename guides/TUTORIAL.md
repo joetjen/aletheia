@@ -91,10 +91,10 @@ precedence (`*`/`/` bind tighter than `+`/`-`, unary minus tighter
 still):
 
 ```elixir
-Aletheia.query("X is 2 + 3 * 4", Aletheia.Database.new())
+Aletheia.query("X is 2 + 3 * 4", Episteme.Database.new())
 #=> {:ok, [%{"X" => 14}]}
 
-Aletheia.query("X is 7 // 2", Aletheia.Database.new())
+Aletheia.query("X is 7 // 2", Episteme.Database.new())
 #=> {:ok, [%{"X" => 3}]}
 ```
 
@@ -196,10 +196,10 @@ Elixir process.
 Lists use native `[H|T]` syntax throughout, backed by real Elixir lists:
 
 ```elixir
-Aletheia.query("append([1, 2], [3, 4], X)", Aletheia.Database.new())
+Aletheia.query("append([1, 2], [3, 4], X)", Episteme.Database.new())
 #=> {:ok, [%{"X" => [1, 2, 3, 4]}]}
 
-Aletheia.query("member(X, [a, b, c])", Aletheia.Database.new())
+Aletheia.query("member(X, [a, b, c])", Episteme.Database.new())
 #=> {:ok, [%{"X" => :a}, %{"X" => :b}, %{"X" => :c}]}
 ```
 

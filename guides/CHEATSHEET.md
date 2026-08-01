@@ -23,7 +23,7 @@ Aletheia.next_solution(stream, vars)
 ```
 
 `db` accumulates across calls — `consult_string/2`'s second argument
-defaults to a fresh `Aletheia.Database.new()`, but pass a previous
+defaults to a fresh `Episteme.Database.new()`, but pass a previous
 `db` to keep adding clauses to the same one.
 
 ## REPL
