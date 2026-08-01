@@ -61,16 +61,21 @@ defmodule Aletheia.MixProject do
       # ExDoc is invoked via `MIX_ENV=dev mix docs`
 
       # === RUNTIME ===
-      # ichor_runtime is the only piece a generated parser (and an engine
-      # built on top of it -- Ichor.Backtrack/Ichor.Toolkit.Pratt/TermWalk)
-      # needs at actual runtime; ichor itself (the Aether front-end,
-      # Grammar.Analysis, both codegen backends) is only ever invoked via
-      # `mix ichor.gen`, ahead of time, so it's dev-only and never ships
-      # in a release. Both published to Hex now (independent packages,
-      # independent release cadence -- ichor_runtime is its own repo, not
-      # a subdirectory of ichor's).
+      # ichor_runtime is the only piece a generated parser (Aletheia.Reader,
+      # via Ichor.Toolkit.Pratt) needs at actual runtime; ichor itself (the
+      # Aether front-end, Grammar.Analysis, both codegen backends) is only
+      # ever invoked via `mix ichor.gen`, ahead of time, so it's dev-only
+      # and never ships in a release. Both published to Hex now
+      # (independent packages, independent release cadence -- ichor_runtime
+      # is its own repo, not a subdirectory of ichor's).
       {:ichor_runtime, "~> 0.1.0"},
-      {:ichor, "~> 0.2.0", only: :dev, runtime: false}
+      {:ichor, "~> 0.2.0", only: :dev, runtime: false},
+      # Episteme is the standalone engine/database this reader is a
+      # front-end for -- terms, unification, SLD-resolution, cut, and the
+      # builtin predicates all live there now, not in this package (see
+      # DESIGN.md's `episteme_split`). Not yet published to Hex, so a path
+      # dependency onto a sibling checkout for now.
+      {:episteme, path: "../episteme"}
     ]
   end
 
@@ -98,9 +103,10 @@ defmodule Aletheia.MixProject do
   end
 
   defp description do
-    "An embedded Prolog dialect for Elixir -- classic Prolog syntax and semantics " <>
-      "(unification, SLD-resolution, backtracking, real clause-scoped cut, a mutable " <>
-      "op/3 operator table) via a reader and resolution engine built on top of Ichor."
+    "An embedded Prolog dialect for Elixir -- classic Prolog syntax (`:-`, `,`/`;`, `=`, " <>
+      "a mutable op/3 operator table) via a reader built on top of Ichor and Episteme, " <>
+      "the standalone resolution engine and clause database (unification, SLD-resolution, " <>
+      "backtracking, a real clause-scoped cut) this package is a syntax front-end for."
   end
 
   defp package do
@@ -149,21 +155,6 @@ defmodule Aletheia.MixProject do
         Aletheia.Reader,
         Aletheia.Reader.Actions,
         Aletheia.Reader.Pratt
-      ],
-      "Term & Database": [
-        Aletheia.Term,
-        Aletheia.Term.Var,
-        Aletheia.Term.Compound,
-        Aletheia.Database
-      ],
-      Engine: [
-        Aletheia.Engine
-      ],
-      Builtins: [
-        Aletheia.Builtins.Arithmetic,
-        Aletheia.Builtins.Exceptions,
-        Aletheia.Builtins.Io,
-        Aletheia.Builtins.Lists
       ],
       REPL: [
         Aletheia.Repl

@@ -159,7 +159,7 @@ escaping to prune the caller's own choice points.
 
 ```elixir
 Aletheia.query("X = foo(1, 2)", db)
-#=> {:ok, [%{"X" => %Aletheia.Term.Compound{name: :foo, args: [1, 2]}}]}
+#=> {:ok, [%{"X" => %Episteme.Term.Compound{name: :foo, args: [1, 2]}}]}
 
 Aletheia.query("1 == 1.0", db)   #=> {:ok, []}          -- different types
 Aletheia.query("X = 2, X \\= 1", db)  #=> {:ok, [%{"X" => 2}]}
@@ -191,7 +191,7 @@ succeeds or fails accordingly — none of them bind anything.
 
 ```elixir
 Aletheia.query("copy_term(f(X, X), Y)", db)
-#=> {:ok, [%{"Y" => %Aletheia.Term.Compound{name: :f, args: [freshA, freshA]}}]}
+#=> {:ok, [%{"Y" => %Episteme.Term.Compound{name: :f, args: [freshA, freshA]}}]}
 ```
 
 ## Arithmetic
@@ -260,7 +260,7 @@ example(X) :- X = (tom likes wine).
 
 ```elixir
 Aletheia.query("example(X)", db)
-#=> {:ok, [%{"X" => %Aletheia.Term.Compound{name: :likes, args: [:tom, :wine]}}]}
+#=> {:ok, [%{"X" => %Episteme.Term.Compound{name: :likes, args: [:tom, :wine]}}]}
 ```
 
 `op/3` takes effect at **read time** — it's a directive processed while

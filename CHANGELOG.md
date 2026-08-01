@@ -45,6 +45,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the lazy pair specifically so it never over-computes past what a
   user actually asks to see via `;`.
 
+### Changed
+
+- **Split into two packages**: `Aletheia.Term`, `Aletheia.Database`,
+  `Aletheia.Engine`, and `Aletheia.Builtins.*` moved out of this
+  repository into a new sibling package,
+  [`episteme`](https://hex.pm/packages/episteme)
+  (`Episteme.Term`/`Database`/`Engine`/`Builtins.*`, plus a top-level
+  `Episteme` module for querying an already-built term against an
+  already-built database, with no parser involved). This package
+  (`aletheia`) is now the syntax front-end only: the reader and REPL,
+  depending on `episteme` for everything past parsing. The top-level
+  `Aletheia.consult/1`, `consult_string/2`, `query/2`, `query_once/2`,
+  `query_lazy/2`, and `next_solution/2` API is unchanged for existing
+  callers; code that referenced `Aletheia.Term`/`Database`/`Engine`/
+  `Builtins.*` directly needs to reference `Episteme.*` instead. See
+  `DESIGN.md` §3.1 ("The `aletheia`/`episteme` split") for the
+  rationale.
+
 ### Fixed
 
 - Found (and fixed upstream, in `ichor`/`ichor_runtime`) a real gap in

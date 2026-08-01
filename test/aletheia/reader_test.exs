@@ -2,7 +2,7 @@ defmodule Aletheia.ReaderTest do
   use ExUnit.Case, async: true
 
   alias Aletheia.Reader
-  alias Aletheia.Term.Compound
+  alias Episteme.Term.Compound
 
   describe "facts" do
     test "a ground compound term" do
