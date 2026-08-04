@@ -49,4 +49,23 @@ defmodule Aletheia.EndToEndTest do
 
   defp take_first({:ok, [first | _]}), do: {:ok, [first]}
   defp take_first(other), do: other
+
+  describe "control syntax translation, exercised through the full pipeline" do
+    test "disjunction (;) and cut (!) reach the engine correctly" do
+      {:ok, db} = Aletheia.consult_string("p(a). p(b).\nq(X) :- p(X) ; X = c.")
+
+      assert {:ok, solutions} = Aletheia.query("q(X)", db)
+      people = solutions |> Enum.map(& &1["X"]) |> Enum.sort()
+      assert people == [:a, :b, :c]
+
+      assert {:ok, [%{"X" => :a}]} = Aletheia.query("p(X), !", db) |> take_first()
+    end
+
+    test "if-then-else (Cond -> Then ; Else) commits to Then without falling through to Else" do
+      {:ok, db} = Aletheia.consult_string("classify(X, R) :- (X > 10 -> R = big ; R = small).")
+
+      assert {:ok, %{"R" => :small}} = Aletheia.query_once("classify(1, R)", db)
+      assert {:ok, %{"R" => :big}} = Aletheia.query_once("classify(20, R)", db)
+    end
+  end
 end

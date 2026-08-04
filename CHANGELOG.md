@@ -62,6 +62,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Builtins.*` directly needs to reference `Episteme.*` instead. See
   `DESIGN.md` §3.1 ("The `aletheia`/`episteme` split") for the
   rationale.
+- **`episteme` published to Hex**: the dependency on
+  [`episteme`](https://hex.pm/packages/episteme) is now a plain Hex
+  version requirement (`{:episteme, "~> 0.1"}`) instead of a path
+  dependency onto a sibling checkout — no local `episteme` checkout is
+  needed to build `aletheia` anymore. Pulled in `ichor_runtime ~> 0.2`
+  and `ichor ~> 0.3` transitively, both bumped here too.
+- **New `Aletheia.Reader.ControlSyntax` module**: `episteme` 0.1.0
+  renamed the control constructs and comparison operators it dispatches
+  on from ISO Prolog punctuation to plain-English names (`,` → `and/2`,
+  `;` → `or/2`, `!` → `cut`, `\+` → `not/1`, `=` → `unify/2`, and so on
+  — see `episteme`'s own `CHANGELOG.md`). `Aletheia.Reader` itself still
+  parses and produces the classic punctuation-named terms (unchanged,
+  and still the correct reading of `.alp` source); `Aletheia`'s
+  top-level API now translates rule bodies and query goals through
+  `Aletheia.Reader.ControlSyntax.to_goal/1` before handing them to
+  `Episteme`, including rewriting the ISO `(Cond -> Then ; Else)`
+  nested pattern to the explicit `if_then_else/3` `episteme` now
+  requires. No change to `.alp` source syntax or to any public
+  `Aletheia` function signature.
 
 ### Fixed
 
