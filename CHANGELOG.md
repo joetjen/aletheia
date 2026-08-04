@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Docs are now cross-referenced from the project config**: `mix.exs`
+  sets `homepage_url`/`canonical` (docs) and a `"Docs"` package link
+  pointing at the GitHub Pages site
+  (`https://joetjen.github.io/aletheia/`), and the README/`DESIGN.md`
+  reference it too. The site itself is built by
+  `.github/workflows/docs.yml` on every push to `main`; it won't
+  actually be live until aletheia's first release reaches `main`.
 - **A handful of v0.2/v0.3 predicates already work, ahead of schedule**:
   `assert/1`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`
   (dynamic database), `findall/3` (aggregation), `forall/2`, and

@@ -146,6 +146,9 @@ parsing (which in turn depends on `ichor_runtime` for
 - **[Examples](guides/EXAMPLES.md)** — worked, runnable programs (a
   family tree, list processing, cut-based control flow, exception
   handling), with runnable source under `examples/`.
+- **[API docs](https://joetjen.github.io/aletheia/)** — generated
+  module documentation, rebuilt and deployed automatically on every
+  push to `main` (see `.github/workflows/docs.yml`).
 
 ## Development
 
