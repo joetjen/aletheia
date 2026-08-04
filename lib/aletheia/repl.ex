@@ -13,6 +13,11 @@ defmodule Aletheia.Repl do
     loop(db)
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
+  # `path` comes from this REPL's own command-line arguments (`start/1`'s
+  # `paths`) -- a local, interactive CLI user naming a file to load, not
+  # attacker-controlled input from a network request. Low-confidence
+  # false positive.
   defp consult_into!(path, db) do
     case Aletheia.consult_string(File.read!(path), db) do
       {:ok, db} ->

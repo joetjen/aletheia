@@ -88,6 +88,70 @@ defmodule Aletheia.ReaderTest do
     end
   end
 
+  describe "strings" do
+    test "a double-quoted literal produces a real Elixir binary, not a code list" do
+      assert {:ok, [{:fact, %Compound{args: [s]}}], _ctx} =
+               Reader.consult_string("greeting(\"hello world\").")
+
+      assert s == "hello world"
+    end
+
+    test "no escape processing -- same simplification as quoted atoms" do
+      assert {:ok, [{:fact, %Compound{args: [s]}}], _ctx} =
+               Reader.consult_string("word(\"abc\").")
+
+      assert s == "abc"
+    end
+  end
+
+  describe "curly braces ('{}'/1, ISO's own term shape)" do
+    test "{Goal} parses to the compound '{}'(Goal), same as anywhere else in ISO" do
+      assert {:ok, [{:fact, %Compound{args: [curly]}}], _ctx} =
+               Reader.consult_string("wrap({foo(1)}).")
+
+      assert %Compound{name: :{}, args: [%Compound{name: :foo, args: [1]}]} = curly
+    end
+  end
+
+  describe "DCG rules (-->)" do
+    test "Head --> Body parses to a {:dcg, head, body} form, not {:rule, ...}" do
+      assert {:ok, [{:dcg, head, body}], _ctx} =
+               Reader.consult_string("greeting --> [hello], [world].")
+
+      assert head == :greeting
+      assert %Compound{name: :",", args: [[:hello], [:world]]} = body
+    end
+
+    test "a DCG rule's head can take arguments, same as an ordinary rule's" do
+      assert {:ok, [{:dcg, head, _body}], _ctx} = Reader.consult_string("digit(D) --> [D].")
+      assert %Compound{name: :digit, args: [_d]} = head
+    end
+
+    test "head and body share the same freshened variable" do
+      assert {:ok, [{:dcg, head, body}], _ctx} =
+               Reader.consult_string("digit(D) --> [D], { integer(D) }.")
+
+      assert %Compound{name: :digit, args: [d1]} = head
+
+      assert %Compound{
+               name: :",",
+               args: [[^d1], %Compound{name: :{}, args: [%Compound{name: :integer, args: [d2]}]}]
+             } = body
+
+      assert d1.ref == d2.ref
+    end
+  end
+
+  describe "standard order of terms operators (@<, @>, @=<, @>=)" do
+    test "parse as infix operators, priority 700, same class as = and ==" do
+      assert {:ok, [{:rule, _head, body}], _ctx} =
+               Reader.consult_string("p(X) :- X @< a, a @> X, X @=< a, a @>= X.")
+
+      assert %Compound{name: :",", args: [first, _rest]} = body
+      assert %Compound{name: :"@<", args: [_x, :a]} = first
+    end
+  end
+
   describe "lists" do
     test "proper and improper list syntax" do
       assert {:ok, [{:fact, %Compound{args: [[]]}}], _ctx} = Reader.consult_string("empty([]).")

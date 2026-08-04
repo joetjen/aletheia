@@ -118,4 +118,104 @@ defmodule Aletheia.EndToEndTest do
       assert {:ok, []} = Aletheia.query("between(1, 5, 9)", db)
     end
   end
+
+  describe "predicates from episteme's v0.2-v0.5 work (see DESIGN.md's episteme_v0_2_completed and later)" do
+    test "ignore/1 and unify_with_occurs_check/2" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, [%{}]} = Aletheia.query("ignore(fail)", db)
+      assert {:ok, []} = Aletheia.query("unify_with_occurs_check(X, f(X))", db)
+    end
+
+    test "standard order of terms, both as goals and via the @<//@>//@=<//@>= reader syntax" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, []} = Aletheia.query("zzz @< aaa", db)
+      assert {:ok, [%{}]} = Aletheia.query("aaa @< zzz", db)
+      assert {:ok, [%{"Order" => :<}]} = Aletheia.query("compare(Order, aaa, zzz)", db)
+    end
+
+    test "term inspection: functor/3, arg/3, univ/2 (=.. not reader-supported yet), ground/1" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, [%{"Name" => :foo, "Arity" => 2}]} =
+               Aletheia.query("functor(foo(1,2), Name, Arity)", db)
+
+      assert {:ok, [%{"A" => 2}]} = Aletheia.query("arg(2, foo(1,2), A)", db)
+      assert {:ok, [%{"L" => [:foo, 1, 2]}]} = Aletheia.query("univ(foo(1,2), L)", db)
+      assert {:ok, [%{}]} = Aletheia.query("ground(foo(1,2))", db)
+      assert {:ok, []} = Aletheia.query("ground(foo(1,X))", db)
+    end
+
+    test "dynamic database round-out: dynamic/1, abolish/1, clause/2" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, [%{}]} = Aletheia.query("dynamic(p/1)", db)
+      assert {:ok, []} = Aletheia.query("p(1)", db)
+      assert {:ok, %{}} = Aletheia.query_once("assertz(p(1))", db)
+      assert {:ok, [%{"B" => true}]} = Aletheia.query("clause(p(1), B)", db)
+      assert {:ok, [%{}]} = Aletheia.query("abolish(p/1)", db)
+      assert {:error, _} = Aletheia.query("p(1)", db)
+    end
+
+    test "the v0.2 list-predicate family: msort/2, sort/2, permutation/2, exclude/3" do
+      {:ok, db} = Aletheia.consult_string("small(X) :- X < 3.")
+
+      assert {:ok, [%{"L" => [1, 1, 2, 3]}]} = Aletheia.query("msort([3,1,2,1], L)", db)
+      assert {:ok, [%{"L" => [1, 2, 3]}]} = Aletheia.query("sort([3,1,2,1], L)", db)
+      assert {:ok, [%{"L" => [3, 4, 5]}]} = Aletheia.query("exclude(small, [1,2,3,4,5], L)", db)
+    end
+
+    test "bagof/3 and setof/3 -- fail (not L = []) on no solutions, unlike findall/3" do
+      {:ok, db} =
+        Aletheia.consult_string("likes(mary, apples). likes(mary, pears). likes(john, apples).")
+
+      assert {:ok, solutions} = Aletheia.query("bagof(X, likes(mary, X), L)", db)
+      assert [%{"L" => [:apples, :pears]}] = solutions
+
+      assert {:ok, []} = Aletheia.query("bagof(X, likes(nobody, X), L)", db)
+      assert {:ok, [%{"L" => []}]} = Aletheia.query("findall(X, likes(nobody, X), L)", db)
+    end
+
+    test "the atom/number/string conversion family: atom_codes, atom_concat, sub_atom, atom_string, string_concat" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, [%{"X" => :foobar}]} = Aletheia.query("atom_concat(foo, bar, X)", db)
+      assert {:ok, [%{"Sub" => :bc}]} = Aletheia.query("sub_atom(abc, 1, 2, 0, Sub)", db)
+      assert {:ok, [%{"S" => "hello"}]} = Aletheia.query("atom_string(hello, S)", db)
+
+      assert {:ok, [%{"X" => "foobar"}]} =
+               Aletheia.query("string_concat(\"foo\", \"bar\", X)", db)
+    end
+
+    test "real strings: literal syntax, string/1, unification, standard order" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, [%{"X" => "hi"}]} = Aletheia.query("X = \"hi\"", db)
+      assert {:ok, [%{}]} = Aletheia.query("string(\"hi\")", db)
+      assert {:ok, []} = Aletheia.query("string(hi)", db)
+      assert {:ok, []} = Aletheia.query("\"hi\" = hi", db)
+    end
+
+    test "format/2 with a real string format and mixed directives" do
+      {:ok, db} = Aletheia.consult_string("")
+      assert {:ok, [%{}]} = Aletheia.query("format(\"~w and ~d~n\", [hello, 42])", db)
+    end
+
+    test "DCG: a grammar rule defined in source, run via phrase/2,3" do
+      {:ok, db} =
+        Aletheia.consult_string("""
+        greeting --> [hello], [world].
+        digit(D) --> [D], { integer(D) }.
+        """)
+
+      assert {:ok, [%{}]} = Aletheia.query("phrase(greeting, [hello, world])", db)
+      assert {:ok, []} = Aletheia.query("phrase(greeting, [bye])", db)
+      assert {:ok, [%{"X" => 5}]} = Aletheia.query("phrase(digit(X), [5])", db)
+      assert {:ok, []} = Aletheia.query("phrase(digit(X), [not_a_digit])", db)
+
+      assert {:ok, [%{"Rest" => [:extra]}]} =
+               Aletheia.query("phrase(greeting, [hello, world, extra], Rest)", db)
+    end
+  end
 end

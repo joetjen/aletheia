@@ -31,7 +31,11 @@ defmodule Aletheia.Reader.ControlSyntax do
     {:"=:=", 2} => :numeric_equal,
     {:"=\\=", 2} => :numeric_not_equal,
     {:"=<", 2} => :less_or_equal,
-    {:>=, 2} => :greater_or_equal
+    {:>=, 2} => :greater_or_equal,
+    {:"@<", 2} => :order_less,
+    {:"@>", 2} => :order_greater,
+    {:"@=<", 2} => :order_less_or_equal,
+    {:"@>=", 2} => :order_greater_or_equal
   }
 
   @doc """

@@ -26,9 +26,15 @@
 ;     element position, mirroring ISO's real "an argument is a term of
 ;     priority =< 999" rule via `Ichor.Toolkit.Pratt.parse/4`'s own
 ;     `min_prec`.
-;   - No double-quoted string literals yet -- DESIGN.md's own
-;     `term_deferred_decisions` leaves the string-type question open
-;     until v0.4; premature to pick a lexical form now.
+;   - Double-quoted string literals have no escape processing, same
+;     simplification `QATOM` (quoted atoms) already has -- a literal
+;     `"` can't appear inside one at all, not even backslash-escaped.
+;     Produces a real Elixir binary (see DESIGN.md's own
+;     `string_type_decision`), not a code list.
+;   - `{Goal}` (ISO's own `'{}'/1` term shape -- ordinary syntax
+;     anywhere, not DCG-specific, though DCG body translation is what
+;     gives it special meaning) requires non-empty content; the bare
+;     atom `{}` isn't supported.
 
 LINE_COMMENT  := "%" (!"\n" .)* "\n"?
 BLOCK_COMMENT := "/*" (!"*/" .)* "*/"
@@ -37,6 +43,7 @@ TRIVIA        := (SPACE | LINE_COMMENT | BLOCK_COMMENT)*
 VAR      := [A-Z_][a-zA-Z0-9_]*
 ATOM     := [a-z][a-zA-Z0-9_]*
 QATOM    := "'" (!"'" .)* "'"
+STRING   := "\"" (!"\"" .)* "\""
 NUMBER   := DIGIT+ ("." DIGIT+)?
 BANG     := "!"
 SEMI     := ";"
@@ -44,19 +51,23 @@ LPAREN   := "("
 RPAREN   := ")"
 LBRACKET := "["
 RBRACKET := "]"
+LBRACE   := "{"
+RBRACE   := "}"
 COMMA    := ","
 BAR      := "|"
 DOT      := "."
 RULE_OP  := ":-"
+DCG_OP   := "-->"
 OP       := [#$&*+\-/:<=>?@^~\\]+
 
 ; `run_sequence/4`'s own model, exactly like `test/lisp/lisp.aether`'s
 ; `@root form` (one top-level form per call, not a `*`-repeated whole-
 ; file rule) -- the caller loops, not the grammar.
-clause := (directive | rule | fact) DOT
+clause := (directive | rule | dcg_rule | fact) DOT
 
 directive := RULE_OP goal:term
 rule      := head:compound_or_atom RULE_OP body:term
+dcg_rule  := head:compound_or_atom DCG_OP body:term
 fact      := compound_or_atom
 
 compound_or_atom := compound | atom_lit
@@ -68,6 +79,12 @@ atom_lit := ATOM | QATOM | BANG | SEMI
 list := LBRACKET RBRACKET
       | LBRACKET items:arglist BAR tail:arg_term RBRACKET
       | LBRACKET items:arglist RBRACKET
+
+; ISO's own `'{}'/1` term shape -- ordinary syntax anywhere a term can
+; appear, not DCG-specific; `Episteme.Dcg.translate_body/3` is what
+; gives it special meaning (an embedded plain goal, no list threading)
+; when it appears in a DCG rule's body specifically.
+curly := LBRACE inner:term RBRACE
 
 ; The operator-precedence-parsed core: `primary` is each rule's only
 ; declared dependency, exactly like `test/opexpr/opexpr.aether`'s own
@@ -84,4 +101,4 @@ arg_term := @native("Aletheia.Reader.Pratt", "parse_arg_term", primary) @hint(nu
 ; handling: `parse_nud` only ever falls through to `primary` for a
 ; token that either isn't a registered operator at all, or is
 ; registered without a `:prefix` entry.
-primary := NUMBER | VAR | list | compound_or_atom | OP | LPAREN inner:term RPAREN
+primary := NUMBER | STRING | VAR | list | curly | compound_or_atom | OP | LPAREN inner:term RPAREN

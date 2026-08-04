@@ -50,6 +50,10 @@ defmodule Aletheia.Reader.Actions do
     |> OpTable.infix(">", iso(700), :left)
     |> OpTable.infix("=<", iso(700), :left)
     |> OpTable.infix(">=", iso(700), :left)
+    |> OpTable.infix("@<", iso(700), :left)
+    |> OpTable.infix("@>", iso(700), :left)
+    |> OpTable.infix("@=<", iso(700), :left)
+    |> OpTable.infix("@>=", iso(700), :left)
     |> OpTable.infix("+", iso(500), :left)
     |> OpTable.infix("-", iso(500), :left)
     |> OpTable.infix("*", iso(400), :left)
@@ -72,18 +76,39 @@ defmodule Aletheia.Reader.Actions do
 
   def handle_token(:VAR, "_", _ctx), do: {:ok, {:var_ref, make_ref()}}
   def handle_token(:VAR, text, _ctx), do: {:ok, {:var_ref, text}}
-  def handle_token(:ATOM, text, _ctx), do: {:ok, String.to_atom(text)}
+  def handle_token(:ATOM, text, _ctx), do: {:ok, to_prolog_atom(text)}
 
   def handle_token(:QATOM, text, _ctx),
-    do: {:ok, text |> String.slice(1..-2//1) |> String.to_atom()}
+    do: {:ok, text |> String.slice(1..-2//1) |> to_prolog_atom()}
 
-  def handle_token(:BANG, text, _ctx), do: {:ok, String.to_atom(text)}
-  def handle_token(:SEMI, text, _ctx), do: {:ok, String.to_atom(text)}
-  def handle_token(:OP, text, _ctx), do: {:ok, String.to_atom(text)}
+  # A real string (see DESIGN.md's `string_type_decision`) -- a plain
+  # Elixir binary, no wrapper struct, same as `Episteme.Term`'s own
+  # representation for one.
+  def handle_token(:STRING, text, _ctx), do: {:ok, String.slice(text, 1..-2//1)}
+
+  def handle_token(:BANG, text, _ctx), do: {:ok, to_prolog_atom(text)}
+  def handle_token(:SEMI, text, _ctx), do: {:ok, to_prolog_atom(text)}
+  def handle_token(:OP, text, _ctx), do: {:ok, to_prolog_atom(text)}
+
+  # sobelow_skip ["DOS.StringToAtom"]
+  # Every atom this reader ever produces (plain atoms, quoted atoms,
+  # `!`/`;` as atoms, operator symbols) comes from source text via one
+  # of the `handle_token/3` clauses above -- the BEAM atom table isn't
+  # garbage collected, so this is DESIGN.md's own already-documented
+  # `atom-table-exhaustion` risk (accepted for v0.1-v0.5, a library
+  # embedded in trusted programs; revisit before any untrusted/generated-
+  # source use case). Routing every `String.to_atom/1` call through here
+  # instead of five separate call sites keeps that justification in one
+  # place instead of a skip comment repeated five times over.
+  @spec to_prolog_atom(String.t()) :: atom()
+  defp to_prolog_atom(text), do: String.to_atom(text)
 
   @impl true
   def handle_rule(:clause, captures, ctx) do
-    cap = Map.get(captures, :fact) || Map.get(captures, :rule) || Map.get(captures, :directive)
+    cap =
+      Map.get(captures, :fact) || Map.get(captures, :rule) || Map.get(captures, :dcg_rule) ||
+        Map.get(captures, :directive)
+
     cap.eval.(ctx)
   end
 
@@ -141,6 +166,25 @@ defmodule Aletheia.Reader.Actions do
          {:ok, body, ctx} <- body_cap.eval.(ctx) do
       {fresh_head, fresh_body} = freshen_pair(head, body)
       {:ok, {:rule, fresh_head, fresh_body}, ctx}
+    end
+  end
+
+  # A DCG rule (`Head --> Body`) -- same shape as an ordinary `:rule`,
+  # tagged `:dcg` instead of `:rule` so `Aletheia.to_engine_form/1` (and,
+  # past that, `Episteme.Database.consult_forms/2`) know to route `body`
+  # through DCG translation instead of storing it as an ordinary clause
+  # body directly.
+  def handle_rule(:dcg_rule, %{head: head_cap, body: body_cap}, ctx) do
+    with {:ok, head, ctx} <- head_cap.eval.(ctx),
+         {:ok, body, ctx} <- body_cap.eval.(ctx) do
+      {fresh_head, fresh_body} = freshen_pair(head, body)
+      {:ok, {:dcg, fresh_head, fresh_body}, ctx}
+    end
+  end
+
+  def handle_rule(:curly, %{inner: cap}, ctx) do
+    with {:ok, inner, ctx} <- cap.eval.(ctx) do
+      {:ok, %Compound{name: :{}, args: [inner]}, ctx}
     end
   end
 
