@@ -68,4 +68,54 @@ defmodule Aletheia.EndToEndTest do
       assert {:ok, %{"R" => :big}} = Aletheia.query_once("classify(20, R)", db)
     end
   end
+
+  describe "predicates shipped ahead of schedule (see episteme_ahead_of_schedule, DESIGN.md decisions_log)" do
+    test "assert/asserta/assertz/retract/retractall mutate the database, visible to later queries" do
+      {:ok, db} = Aletheia.consult_string("p(a). p(b).")
+
+      assert {:ok, %{}} = Aletheia.query_once("assertz(p(c))", db)
+      assert {:ok, %{}} = Aletheia.query_once("asserta(p(z))", db)
+      assert {:ok, solutions} = Aletheia.query("p(X)", db)
+      assert solutions |> Enum.map(& &1["X"]) |> Enum.sort() == [:a, :b, :c, :z]
+
+      assert {:ok, %{}} = Aletheia.query_once("retract(p(a))", db)
+      assert {:ok, []} = Aletheia.query("p(a)", db)
+
+      assert {:ok, %{}} = Aletheia.query_once("retractall(p(_))", db)
+      assert {:ok, []} = Aletheia.query("p(_)", db)
+    end
+
+    test "assert works on a brand-new predicate with no dynamic/1 declaration first" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, %{}} = Aletheia.query_once("assert(q(1))", db)
+      assert {:ok, [%{"X" => 1}]} = Aletheia.query("q(X)", db)
+    end
+
+    test "findall/3 collects every solution, [] when there are none" do
+      {:ok, db} = Aletheia.consult_string("p(a). p(b). p(c).")
+
+      assert {:ok, [%{"L" => [:a, :b, :c]}]} = Aletheia.query("findall(X, p(X), L)", db)
+
+      assert {:ok, [%{"L" => []}]} =
+               Aletheia.query("findall(X, (p(X), X == nonexistent), L)", db)
+    end
+
+    test "forall/2 succeeds iff every solution of Cond has a solution of Action" do
+      {:ok, db} = Aletheia.consult_string("p(1). p(2). p(3).")
+
+      assert {:ok, [%{}]} = Aletheia.query("forall(p(X), X > 0)", db)
+      assert {:ok, []} = Aletheia.query("forall(p(X), X > 1)", db)
+    end
+
+    test "between/3 enumerates on an unbound X, checks membership on a bound one" do
+      {:ok, db} = Aletheia.consult_string("")
+
+      assert {:ok, solutions} = Aletheia.query("between(1, 5, X)", db)
+      assert Enum.map(solutions, & &1["X"]) == [1, 2, 3, 4, 5]
+
+      assert {:ok, [%{}]} = Aletheia.query("between(1, 5, 3)", db)
+      assert {:ok, []} = Aletheia.query("between(1, 5, 9)", db)
+    end
+  end
 end

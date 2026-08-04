@@ -46,8 +46,12 @@ unification and backtracking, a genuinely clause-scoped cut (not a
 why that distinction is load-bearing), core control constructs,
 `is/2` arithmetic, exceptions (`throw/catch` + the standard ISO error
 terms), a runtime-mutable `op/3` operator table, the v0.1 list
-predicate family, minimal I/O, and a REPL. Everything past that
-(dynamic database/`assert`+`retract`, `findall`/`bagof`/`setof`, the
+predicate family, minimal I/O, and a REPL. A handful of v0.2/v0.3
+predicates also work already — `assert`/`asserta`/`assertz`/`retract`/
+`retractall`, `findall/3`, `forall/2`, `between/3` — shipped early as
+part of `episteme`'s own initial extraction (see
+[the reference](guides/REFERENCE.md#database)). Everything else
+(`bagof`/`setof`, term inspection, standard order of terms, the
 atom/string predicate family, DCGs) is staged, need-first, across
 later milestones — see [the reference](guides/REFERENCE.md) for
 exactly which predicates exist today.
