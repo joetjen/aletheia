@@ -98,20 +98,6 @@ defmodule Aletheia.Reader.Grammar do
       end
     end
 
-    def lex_token__DOT(input) do
-      case input do
-        <<".", rest::binary>> -> {:ok, ".", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__BANG(input) do
-      case input do
-        <<"!", rest::binary>> -> {:ok, "!", rest}
-        _ -> :fail
-      end
-    end
-
     def lex_expr__3(input) do
       lex_token__SPACE(input)
     end
@@ -130,55 +116,6 @@ defmodule Aletheia.Reader.Grammar do
 
     def lex_token__TRIVIA(input) do
       Tokenizer.star_char(&lex_expr__2/1, input)
-    end
-
-    def lex_token__BAR(input) do
-      case input do
-        <<"|", rest::binary>> -> {:ok, "|", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__LPAREN(input) do
-      case input do
-        <<"(", rest::binary>> -> {:ok, "(", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__RPAREN(input) do
-      case input do
-        <<")", rest::binary>> -> {:ok, ")", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__SEMI(input) do
-      case input do
-        <<";", rest::binary>> -> {:ok, ";", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__COMMA(input) do
-      case input do
-        <<",", rest::binary>> -> {:ok, ",", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__LBRACKET(input) do
-      case input do
-        <<"[", rest::binary>> -> {:ok, "[", rest}
-        _ -> :fail
-      end
-    end
-
-    def lex_token__RBRACKET(input) do
-      case input do
-        <<"]", rest::binary>> -> {:ok, "]", rest}
-        _ -> :fail
-      end
     end
 
     def lex_expr__6(input) do
@@ -470,6 +407,69 @@ defmodule Aletheia.Reader.Grammar do
       end
     end
 
+    def lex_token__BANG(input) do
+      case input do
+        <<"!", rest::binary>> -> {:ok, "!", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__SEMI(input) do
+      case input do
+        <<";", rest::binary>> -> {:ok, ";", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__LPAREN(input) do
+      case input do
+        <<"(", rest::binary>> -> {:ok, "(", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__RPAREN(input) do
+      case input do
+        <<")", rest::binary>> -> {:ok, ")", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__LBRACKET(input) do
+      case input do
+        <<"[", rest::binary>> -> {:ok, "[", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__RBRACKET(input) do
+      case input do
+        <<"]", rest::binary>> -> {:ok, "]", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__COMMA(input) do
+      case input do
+        <<",", rest::binary>> -> {:ok, ",", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__BAR(input) do
+      case input do
+        <<"|", rest::binary>> -> {:ok, "|", rest}
+        _ -> :fail
+      end
+    end
+
+    def lex_token__DOT(input) do
+      case input do
+        <<".", rest::binary>> -> {:ok, ".", rest}
+        _ -> :fail
+      end
+    end
+
     def lex_token__RULE_OP(input) do
       case input do
         <<":-", rest::binary>> -> {:ok, ":-", rest}
@@ -616,10 +616,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__1(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :LBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: {:token, :LBRACKET, text}}}
+          {:ok, new_pos, ref_stack, LBRACKET: {:token, :LBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: capture}}
+          {:ok, new_pos, ref_stack, LBRACKET: capture}
 
         :fail ->
           :fail
@@ -628,7 +628,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__3(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -640,10 +640,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__4(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: {:token, :RBRACKET, text}}}
+          {:ok, new_pos, ref_stack, RBRACKET: {:token, :RBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: capture}}
+          {:ok, new_pos, ref_stack, RBRACKET: capture}
 
         :fail ->
           :fail
@@ -663,10 +663,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__6(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :LBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: {:token, :LBRACKET, text}}}
+          {:ok, new_pos, ref_stack, LBRACKET: {:token, :LBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: capture}}
+          {:ok, new_pos, ref_stack, LBRACKET: capture}
 
         :fail ->
           :fail
@@ -675,7 +675,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__8(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -687,7 +687,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__9(stream, pos, ref_stack, context) do
       case parse_rule__arglist(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{items: {:rule, :arglist, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, items: {:rule, :arglist, sub_captures}}
 
         _fail ->
           :fail
@@ -696,7 +696,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__11(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -707,15 +707,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__12(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :BAR) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{BAR: {:token, :BAR, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{BAR: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, BAR: {:token, :BAR, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, BAR: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__14(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -727,7 +727,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__15(stream, pos, ref_stack, context) do
       case parse_rule__arg_term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{tail: {:rule, :arg_term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, tail: {:rule, :arg_term, sub_captures}}
 
         _fail ->
           :fail
@@ -736,7 +736,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__17(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -748,10 +748,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__18(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: {:token, :RBRACKET, text}}}
+          {:ok, new_pos, ref_stack, RBRACKET: {:token, :RBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: capture}}
+          {:ok, new_pos, ref_stack, RBRACKET: capture}
 
         :fail ->
           :fail
@@ -796,10 +796,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__20(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :LBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: {:token, :LBRACKET, text}}}
+          {:ok, new_pos, ref_stack, LBRACKET: {:token, :LBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{LBRACKET: capture}}
+          {:ok, new_pos, ref_stack, LBRACKET: capture}
 
         :fail ->
           :fail
@@ -808,7 +808,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__22(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -820,7 +820,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__23(stream, pos, ref_stack, context) do
       case parse_rule__arglist(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{items: {:rule, :arglist, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, items: {:rule, :arglist, sub_captures}}
 
         _fail ->
           :fail
@@ -829,7 +829,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__25(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -841,10 +841,10 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__26(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RBRACKET) do
         {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: {:token, :RBRACKET, text}}}
+          {:ok, new_pos, ref_stack, RBRACKET: {:token, :RBRACKET, text}}
 
         {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{RBRACKET: capture}}
+          {:ok, new_pos, ref_stack, RBRACKET: capture}
 
         :fail ->
           :fail
@@ -892,23 +892,23 @@ defmodule Aletheia.Reader.Grammar do
         )
 
       case apply(Aletheia.Reader.Pratt, :parse_term, [stream, pos, context, rule_matchers]) do
-        {:ok, new_pos, capture} -> {:ok, new_pos, ref_stack, %{parse_term: capture}}
+        {:ok, new_pos, capture} -> {:ok, new_pos, ref_stack, parse_term: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__27(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :NUMBER) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{NUMBER: {:token, :NUMBER, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{NUMBER: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, NUMBER: {:token, :NUMBER, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, NUMBER: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__28(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :VAR) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{VAR: {:token, :VAR, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{VAR: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, VAR: {:token, :VAR, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, VAR: capture}
         :fail -> :fail
       end
     end
@@ -916,7 +916,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__29(stream, pos, ref_stack, context) do
       case parse_rule__list(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{list: {:rule, :list, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, list: {:rule, :list, sub_captures}}
 
         _fail ->
           :fail
@@ -927,7 +927,7 @@ defmodule Aletheia.Reader.Grammar do
       case parse_rule__compound_or_atom(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
           {:ok, new_pos, new_ref_stack,
-           %{compound_or_atom: {:rule, :compound_or_atom, sub_captures}}}
+           compound_or_atom: {:rule, :compound_or_atom, sub_captures}}
 
         _fail ->
           :fail
@@ -936,23 +936,23 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__31(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :OP) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{OP: {:token, :OP, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{OP: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, OP: {:token, :OP, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, OP: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__33(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :LPAREN) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{LPAREN: {:token, :LPAREN, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{LPAREN: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, LPAREN: {:token, :LPAREN, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, LPAREN: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__35(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -964,7 +964,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__36(stream, pos, ref_stack, context) do
       case parse_rule__term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{inner: {:rule, :term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, inner: {:rule, :term, sub_captures}}
 
         _fail ->
           :fail
@@ -973,7 +973,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__38(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -984,8 +984,8 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__39(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RPAREN) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{RPAREN: {:token, :RPAREN, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{RPAREN: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, RPAREN: {:token, :RPAREN, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, RPAREN: capture}
         :fail -> :fail
       end
     end
@@ -1029,7 +1029,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__41(stream, pos, ref_stack, context) do
       case parse_rule__directive(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{directive: {:rule, :directive, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, directive: {:rule, :directive, sub_captures}}
 
         _fail ->
           :fail
@@ -1039,7 +1039,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__42(stream, pos, ref_stack, context) do
       case parse_rule__rule(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{rule: {:rule, :rule, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, rule: {:rule, :rule, sub_captures}}
 
         _fail ->
           :fail
@@ -1049,7 +1049,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__43(stream, pos, ref_stack, context) do
       case parse_rule__fact(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{fact: {:rule, :fact, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, fact: {:rule, :fact, sub_captures}}
 
         _fail ->
           :fail
@@ -1068,7 +1068,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__45(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1079,8 +1079,8 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__46(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :DOT) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{DOT: {:token, :DOT, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{DOT: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, DOT: {:token, :DOT, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, DOT: capture}
         :fail -> :fail
       end
     end
@@ -1097,32 +1097,32 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__47(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :ATOM) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{ATOM: {:token, :ATOM, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{ATOM: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, ATOM: {:token, :ATOM, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, ATOM: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__48(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :QATOM) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{QATOM: {:token, :QATOM, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{QATOM: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, QATOM: {:token, :QATOM, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, QATOM: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__49(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :BANG) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{BANG: {:token, :BANG, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{BANG: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, BANG: {:token, :BANG, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, BANG: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__50(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :SEMI) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{SEMI: {:token, :SEMI, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{SEMI: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, SEMI: {:token, :SEMI, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, SEMI: capture}
         :fail -> :fail
       end
     end
@@ -1140,7 +1140,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__51(stream, pos, ref_stack, context) do
       case parse_rule__compound_or_atom(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{head: {:rule, :compound_or_atom, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, head: {:rule, :compound_or_atom, sub_captures}}
 
         _fail ->
           :fail
@@ -1149,7 +1149,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__53(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1160,20 +1160,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__54(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RULE_OP) do
-        {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{RULE_OP: {:token, :RULE_OP, text}}}
-
-        {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{RULE_OP: capture}}
-
-        :fail ->
-          :fail
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, RULE_OP: {:token, :RULE_OP, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, RULE_OP: capture}
+        :fail -> :fail
       end
     end
 
     def parse_expr__56(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1185,7 +1180,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__57(stream, pos, ref_stack, context) do
       case parse_rule__term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{body: {:rule, :term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, body: {:rule, :term, sub_captures}}
 
         _fail ->
           :fail
@@ -1213,20 +1208,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__58(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RULE_OP) do
-        {:ok, new_pos, text, nil} ->
-          {:ok, new_pos, ref_stack, %{RULE_OP: {:token, :RULE_OP, text}}}
-
-        {:ok, new_pos, _text, capture} ->
-          {:ok, new_pos, ref_stack, %{RULE_OP: capture}}
-
-        :fail ->
-          :fail
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, RULE_OP: {:token, :RULE_OP, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, RULE_OP: capture}
+        :fail -> :fail
       end
     end
 
     def parse_expr__60(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1238,7 +1228,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__61(stream, pos, ref_stack, context) do
       case parse_rule__term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{goal: {:rule, :term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, goal: {:rule, :term, sub_captures}}
 
         _fail ->
           :fail
@@ -1259,7 +1249,7 @@ defmodule Aletheia.Reader.Grammar do
       case parse_rule__compound_or_atom(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
           {:ok, new_pos, new_ref_stack,
-           %{compound_or_atom: {:rule, :compound_or_atom, sub_captures}}}
+           compound_or_atom: {:rule, :compound_or_atom, sub_captures}}
 
         _fail ->
           :fail
@@ -1269,7 +1259,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__62(stream, pos, ref_stack, context) do
       case parse_rule__compound(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{compound: {:rule, :compound, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, compound: {:rule, :compound, sub_captures}}
 
         _fail ->
           :fail
@@ -1279,7 +1269,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__63(stream, pos, ref_stack, context) do
       case parse_rule__atom_lit(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{atom_lit: {:rule, :atom_lit, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, atom_lit: {:rule, :atom_lit, sub_captures}}
 
         _fail ->
           :fail
@@ -1293,7 +1283,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__64(stream, pos, ref_stack, context) do
       case parse_rule__atom_lit(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{functor: {:rule, :atom_lit, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, functor: {:rule, :atom_lit, sub_captures}}
 
         _fail ->
           :fail
@@ -1302,7 +1292,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__66(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1313,15 +1303,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__67(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :LPAREN) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{LPAREN: {:token, :LPAREN, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{LPAREN: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, LPAREN: {:token, :LPAREN, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, LPAREN: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__69(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1333,7 +1323,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__70(stream, pos, ref_stack, context) do
       case parse_rule__arglist(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{args: {:rule, :arglist, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, args: {:rule, :arglist, sub_captures}}
 
         _fail ->
           :fail
@@ -1342,7 +1332,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__72(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1353,8 +1343,8 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__73(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :RPAREN) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{RPAREN: {:token, :RPAREN, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{RPAREN: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, RPAREN: {:token, :RPAREN, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, RPAREN: capture}
         :fail -> :fail
       end
     end
@@ -1389,7 +1379,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__74(stream, pos, ref_stack, context) do
       case parse_rule__arg_term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{arg_term: {:rule, :arg_term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, arg_term: {:rule, :arg_term, sub_captures}}
 
         _fail ->
           :fail
@@ -1398,7 +1388,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__76(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1409,15 +1399,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__80(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :COMMA) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{COMMA: {:token, :COMMA, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{COMMA: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, COMMA: {:token, :COMMA, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, COMMA: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__82(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1429,7 +1419,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__83(stream, pos, ref_stack, context) do
       case parse_rule__arg_term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{arg_term: {:rule, :arg_term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, arg_term: {:rule, :arg_term, sub_captures}}
 
         _fail ->
           :fail
@@ -1448,7 +1438,7 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__87(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1459,15 +1449,15 @@ defmodule Aletheia.Reader.Grammar do
 
     def parse_expr__89(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :COMMA) do
-        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, %{COMMA: {:token, :COMMA, text}}}
-        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, %{COMMA: capture}}
+        {:ok, new_pos, text, nil} -> {:ok, new_pos, ref_stack, COMMA: {:token, :COMMA, text}}
+        {:ok, new_pos, _text, capture} -> {:ok, new_pos, ref_stack, COMMA: capture}
         :fail -> :fail
       end
     end
 
     def parse_expr__91(stream, pos, ref_stack, _context) do
       case Parser.match_token(stream, pos, :TRIVIA) do
-        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, %{}}
+        {:ok, new_pos, _text, _capture} -> {:ok, new_pos, ref_stack, []}
         :fail -> :fail
       end
     end
@@ -1479,7 +1469,7 @@ defmodule Aletheia.Reader.Grammar do
     def parse_expr__92(stream, pos, ref_stack, context) do
       case parse_rule__arg_term(stream, pos, ref_stack, context) do
         {:ok, new_pos, new_ref_stack, sub_captures} ->
-          {:ok, new_pos, new_ref_stack, %{arg_term: {:rule, :arg_term, sub_captures}}}
+          {:ok, new_pos, new_ref_stack, arg_term: {:rule, :arg_term, sub_captures}}
 
         _fail ->
           :fail
@@ -1544,7 +1534,7 @@ defmodule Aletheia.Reader.Grammar do
         )
 
       case apply(Aletheia.Reader.Pratt, :parse_arg_term, [stream, pos, context, rule_matchers]) do
-        {:ok, new_pos, capture} -> {:ok, new_pos, ref_stack, %{parse_arg_term: capture}}
+        {:ok, new_pos, capture} -> {:ok, new_pos, ref_stack, parse_arg_term: capture}
         :fail -> :fail
       end
     end
@@ -1562,7 +1552,8 @@ defmodule Aletheia.Reader.Grammar do
     )
 
     @doc "Matches `input` against the grammar's root rule, requiring the entire (tokenized) input to be consumed. A bare recognizer -- no `Ichor.Actions` involved. `context` is read-only and only ever consulted by a `Grammar.IR.Custom` `@native(...)` node, if the grammar has one."
-    @spec parse(String.t(), term()) :: {:ok, non_neg_integer(), map()} | {:error, Ichor.Error.t()}
+    @spec parse(String.t(), term()) ::
+            {:ok, non_neg_integer(), Ichor.Capture.raw_captures()} | {:error, Ichor.Error.t()}
     def parse(input, context \\ nil) do
       with {:ok, tokens} <- tokenize(input, context) do
         stream = List.to_tuple(tokens)

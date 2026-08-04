@@ -27,12 +27,12 @@ project:
   tagline: "Embedded Prolog dialect for Elixir — Clojure is to Common Lisp as Aletheia is to Prolog"
   file_extension: .alp
   hex_package_name: aletheia
-  hex_availability_checked: 2026-07-29 (ichor 0.2.1, ichor_runtime 0.1.0 both published)
+  hex_availability_checked: 2026-08-04 (ichor 0.2.1, ichor_runtime 0.1.0, episteme 0.1.0 all published)
   host_language: Elixir
   host_platform: BEAM
   status: v0.1 implemented and tested (see roadmap); v0.2+ not started
   local_path: "~/Projects/__mine__/aletheia"
-  hard_dependency: "ichor_runtime ~> 0.1.0 (real runtime dep, own Hex package/repo) + ichor ~> 0.2.0 (only: :dev, runtime: false) -- both published to Hex; see ichor_runtime_split -- plus episteme (path dep onto a sibling checkout, not yet on Hex), the standalone engine/database this package's reader is a front-end for; see episteme_split"
+  hard_dependency: "ichor_runtime ~> 0.1 (real runtime dep, own Hex package/repo) + ichor ~> 0.2 (only: :dev, runtime: false) -- both published to Hex; see ichor_runtime_split -- plus episteme ~> 0.1 (own Hex package/repo now too), the standalone engine/database this package's reader is a front-end for; see episteme_split"
   license: MIT (see LICENSE)
 ```
 
@@ -42,6 +42,7 @@ sibling_project:
   meaning: "Greek: structured/justified knowledge, root of 'epistemology'"
   relationship: "the standalone resolution engine and clause database Aletheia's reader is a syntax front-end for -- see episteme_split (decisions_log) and 3.1"
   hex_package_name: episteme
+  hex_status: "published, ~> 0.1 (see episteme_hex_release, decisions_log)"
   local_path: "~/Projects/__mine__/episteme"
   design_reference: "episteme's own repository does not (yet) have its own DESIGN.md; this file's 3.1/6/11 sections are the record of what moved there and why, until it does"
 ```
@@ -155,9 +156,8 @@ rule engine/query layer in Elixir for anyone who does not want
 Aletheia's `.alp` syntax at all, and keeps this repository's own scope
 honestly limited to "the syntax front-end."
 
-`aletheia`'s own dependency on `episteme` is a path dependency onto a
-sibling checkout for now (`{:episteme, path: "../episteme"}`), same as
-Aletheia's own current pre-Hex-release installation story — see
+`aletheia`'s own dependency on `episteme` is a regular Hex dependency
+(`{:episteme, "~> 0.1"}`) as of `episteme_hex_release` — see
 `decisions_log`.
 
 ### 3.2 Known hard problem: cut vs `once/1`
@@ -386,7 +386,9 @@ decisions_log[16]{date,decision,choice,status}:
   2026-07-29,ichor_runtime_hex_release,"both packages published independently to Hex -- ichor 0.2.1 (Aether front-end, Grammar.Analysis, both codegen backends, plus new Ichor.GrammarImport for ABNF/BNF/EBNF/PEG sources; still only: :dev, runtime: false here) and ichor_runtime 0.1.0 (now its own repository, github.com/joetjen/ichor_runtime, not a subdirectory of ichor's; the sole real runtime dependency). mix.exs deps simplified from git+branch+sparse+override to plain {:ichor_runtime, \"~> 0.1.0\"} / {:ichor, \"~> 0.2.0\", only: :dev, runtime: false}. Regenerated grammar_generated.ex against the published mix ichor.gen to confirm codegen output is unaffected by the version bump; full precommit (format/credo --strict/sobelow/test/dialyzer) still clean",final
   2026-07-28,cut_implementation,"! succeeds once, but its own backtrack-past-me continuation throws {:aletheia_cut, barrier} (a barrier = make_ref() minted fresh per predicate call / call//N / once/1 / \\+ per ISO cut-opacity); Aletheia.Engine.guard_cut/2 wraps each call's own lazy solution stream, catching only its own barrier and re-throwing anything else. Ichor.Backtrack.Tree's combinators need zero changes: they're plain function calls with no try inside them, so a throw passes through conjunction/disjunction/once untouched. A bindings-borne \"cut fired\" marker was considered and rejected: `p :- !, fail.` with a second clause `p :- true.` must fail p outright, but a clause body that never produces a solution gives a marker-on-solutions scheme nothing to inspect -- cut has an effect even along a path that ultimately fails",final
   2026-07-28,control_constructs_module_placement,"true/fail/,/;/->/!/\\+/call/once live directly in Aletheia.Engine, not a separate Builtins.Control module as DESIGN.md's original module-layout table sketched -- once actually implemented they turned out inseparable from the cut-barrier machinery (guard_cut, fresh barriers per call), not independent predicates dispatchable through a generic table",final
-  2026-08-01,episteme_split,"split Aletheia.Term/Database/Engine/Builtins.* out into a new sibling package, episteme (Episteme.Term/Database/Engine/Builtins.*, plus a top-level Episteme module mirroring Aletheia's own query/2 family but over already-built terms, no text parsing). Rationale: none of unification/SLD-resolution/clause storage/cut/builtins depend on Aletheia's syntax concretely -- Aletheia's reader is one producer of Episteme terms, not the only possible one, and the split lets Episteme stand alone as a Prolog-like rule engine/query layer for Elixir callers who don't want .alp syntax at all. Internal-only Elixir throw tags renamed :aletheia_throw/:aletheia_cut -> :episteme_throw/:episteme_cut (Episteme.Engine/Episteme.Builtins.Exceptions), since they're now Episteme's own implementation detail, not Aletheia's. aletheia depends on episteme via {:episteme, path: \"../episteme\"} (both still pre-Hex-release); ichor_runtime is now a dependency of both packages directly (episteme for Backtrack/TermWalk, aletheia for Toolkit.Pratt in the reader itself) -- see 3.1",final
+  2026-08-01,episteme_split,"split Aletheia.Term/Database/Engine/Builtins.* out into a new sibling package, episteme (Episteme.Term/Database/Engine/Builtins.*, plus a top-level Episteme module mirroring Aletheia's own query/2 family but over already-built terms, no text parsing). Rationale: none of unification/SLD-resolution/clause storage/cut/builtins depend on Aletheia's syntax concretely -- Aletheia's reader is one producer of Episteme terms, not the only possible one, and the split lets Episteme stand alone as a Prolog-like rule engine/query layer for Elixir callers who don't want .alp syntax at all. Internal-only Elixir throw tags renamed :aletheia_throw/:aletheia_cut -> :episteme_throw/:episteme_cut (Episteme.Engine/Episteme.Builtins.Exceptions), since they're now Episteme's own implementation detail, not Aletheia's. aletheia depends on episteme via {:episteme, path: \"../episteme\"} (both still pre-Hex-release); ichor_runtime is now a dependency of both packages directly (episteme for Backtrack/TermWalk, aletheia for Toolkit.Pratt in the reader itself) -- see 3.1",superseded_by_episteme_hex_release_2026-08-04 (path dependency replaced by a plain Hex version constraint once episteme was published; the split itself is unchanged and still holds)
+  2026-08-04,episteme_hex_release,"episteme published to Hex as episteme 0.1.0 (own repository, github.com/joetjen/episteme, independent release cadence from aletheia). aletheia's mix.exs dependency simplified from {:episteme, path: \"../episteme\"} to plain {:episteme, \"~> 0.1\"} -- no sibling checkout required to build aletheia anymore. Pulled in ichor_runtime ~> 0.2 and ichor ~> 0.3 transitively (episteme's own runtime dependency), both bumped here too; regenerated grammar_generated.ex against ichor 0.3's codegen (raw capture shape change, map -> ordered list -- see ichor's own CHANGELOG 0.3.0) to stay current",final
+  2026-08-04,episteme_control_syntax_translation,"episteme 0.1.0's own first Hex release renamed every ISO-punctuation control construct/comparison operator it dispatches on to a plain-English name (,/2 -> and/2, ;/2 -> or/2, ! -> cut, \\+/1 -> not/1, (Cond->Then;Else) -> if_then_else/3 (explicit, replacing an old implicit ;-wrapping-> pattern match the engine no longer does), (Cond->Then) -> if_then/2, =/2 -> unify/2, \\=/2 -> not_unify/2, ==/2 -> equal/2, \\==/2 -> not_equal/2, =:=/2 -> numeric_equal/2, =\\=/2 -> numeric_not_equal/2, =</2 -> less_or_equal/2, >=/2 -> greater_or_equal/2; +,-,*,/,<,> unchanged, never punctuation-as-control to begin with) -- Episteme has no reader of its own for ISO punctuation to be conventional syntax against. Aletheia.Reader itself keeps producing ISO-punctuation-named terms unchanged (reader_test.exs asserts this directly, and it is the correct, syntax-faithful reading of `.alp` source); the new Aletheia.Reader.ControlSyntax.to_goal/1 bridges the gap, applied by lib/aletheia.ex to rule bodies (before Database.consult_forms/2) and query/query_lazy goals (after parse_goal/1), never to fact terms or rule heads (plain data, matched structurally, never dispatched as goals). Implemented as an Ichor.Toolkit.TermWalk.rewrite/3 pass: transform is applied top-down before TermWalk's own recursion into the (possibly-just-returned) compound's args, so the if-then-else special case can pattern-match the still-untranslated ;-wrapping-> shape directly at the parent node and emit if_then_else/3 in one step, while every other node falls through to a plain {name,arity} -> new_name table lookup",final
 ```
 
 ## 10. Glossary (Prolog terms, for an agent without Prolog background)
@@ -416,13 +418,14 @@ to the separate `episteme` package as of `episteme_split`
 document, not this one's.
 
 ```toon
-modules[8]{path,purpose,milestone}:
-  lib/aletheia.ex,"top-level API: consult/1, consult_string/2, query/2, query_once/2, query_lazy/2 + next_solution/2 -- parses via Aletheia.Reader, delegates solving to Episteme (query/query_lazy/next_solution are thin wrappers over Episteme's own, query_once reuses this module's own query/2)",v0.1
+modules[9]{path,purpose,milestone}:
+  lib/aletheia.ex,"top-level API: consult/1, consult_string/2, query/2, query_once/2, query_lazy/2 + next_solution/2 -- parses via Aletheia.Reader, translates rule bodies/query goals via Aletheia.Reader.ControlSyntax, delegates solving to Episteme (query/query_lazy/next_solution are thin wrappers over Episteme's own, query_once reuses this module's own query/2)",v0.1
   lib/aletheia/reader.ex,"exposes consult_string/2 over Aletheia.Reader.Grammar.run_sequence/2 (the generated module below)",v0.1
   lib/aletheia/reader/grammar.aether,"the real Aletheia lexical+syntactic grammar (Aether) -- source grammar, hand-edited",v0.1
   lib/aletheia/reader/grammar_generated.ex,"mix ichor.gen (mix gen.grammar) output from grammar.aether -- checked in, not regenerated on mix compile; only calls ichor_runtime at actual runtime",v0.1
   lib/aletheia/reader/pratt.ex,"the term/arg_term @native(...) callback over Ichor.Toolkit.Pratt",v0.1
   lib/aletheia/reader/actions.ex,"Ichor.Actions impl: raw capture tree -> Episteme.Term, default operator table, op/3 directive application, per-clause variable freshening",v0.1
+  lib/aletheia/reader/control_syntax.ex,"rewrites a parsed goal from Aletheia.Reader's own ISO-punctuation names (,/2, ;/2, ->/2, !, =/2, ...) to the plain-English control-construct/comparison names Episteme.Engine dispatches on (and/2, or/2, cut, unify/2, ...), as of episteme_hex_release -- Episteme itself no longer accepts ISO punctuation directly",v0.1
   lib/aletheia/repl.ex,"consult + interactive query loop, genuinely lazy (pulls one solution at a time via query_lazy/2+next_solution/2)",v0.1
   test/support/query_helper.ex,"consult+query test shorthand",n/a
 ```

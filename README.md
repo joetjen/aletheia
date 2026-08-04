@@ -66,9 +66,8 @@ end
 ```
 
 Aletheia's own `mix.exs` depends on
-[Episteme](https://hex.pm/packages/episteme) via `{:episteme, path:
-"../episteme"}` (also not yet on Hex) — check out
-`github.com/joetjen/episteme` as a sibling of this repository too.
+[Episteme](https://hex.pm/packages/episteme) as a regular Hex dependency
+(`{:episteme, "~> 0.1"}`) — no sibling checkout needed.
 
 ## How it fits together
 

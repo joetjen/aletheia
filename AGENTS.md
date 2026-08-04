@@ -40,6 +40,10 @@ Instructions for AI agents working in this Elixir codebase.
 
 - When a dependency is scoped `only: [:dev, :test]`/`runtime: false` (or the equivalent in another ecosystem) specifically to keep it out of a production build, verify that boundary after touching deps or `lib/` — e.g. a prod-env compile/dependency-tree check — rather than assuming the scoping still holds.
 
+## Dependency versions
+
+- Default to `~> x.y` (major.minor, no patch) for version requirements in `mix.exs`, e.g. `{:jason, "~> 1.4"}` rather than `{:jason, "~> 1.4.2"}`. Only pin a patch version when explicitly told to, or when a specific patch is genuinely required (e.g. to pull in a fix or work around a known bug).
+
 ## Static analysis findings
 
 - A new low-confidence Sobelow/Dialyzer (or equivalent linter) finding is not automatically wrong, but isn't automatically fine either. Give it a specific justification — a code comment or a targeted ignore-file entry naming the exact function/reason — never a blanket suppression.

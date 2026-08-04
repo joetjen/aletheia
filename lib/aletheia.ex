@@ -10,9 +10,19 @@ defmodule Aletheia do
   `catch/3` in the program itself caught) surface as `{:error, term}`
   here, at the outermost boundary, rather than as a raw Elixir `throw`
   escaping to the caller.
+
+  Every goal parsed from source text (a rule body, or a `query/2`-style
+  goal) is also rewritten from `Aletheia.Reader`'s own ISO-punctuation
+  term shape (`','/2`, `';'/2`, `!`, `'='/2`, ...) into the
+  plain-English control-construct/comparison names `Episteme.Engine`
+  dispatches on (`and/2`, `or/2`, `cut`, `unify/2`, ...) -- see
+  `Aletheia.Reader.ControlSyntax`. An already-parsed term passed
+  directly to `query/2`/`query_lazy/2` is assumed to already be in
+  Episteme's own term shape and is passed through untouched.
   """
 
   alias Aletheia.Reader
+  alias Aletheia.Reader.ControlSyntax
   alias Episteme.{Database, Term}
   alias Ichor.Backtrack.Tree
 
@@ -28,7 +38,7 @@ defmodule Aletheia do
   @spec consult_string(String.t(), Database.t()) :: {:ok, Database.t()} | {:error, term()}
   def consult_string(source, db \\ Database.new()) do
     case Reader.consult_string(source) do
-      {:ok, forms, _ctx} -> {:ok, Database.consult_forms(db, forms)}
+      {:ok, forms, _ctx} -> {:ok, Database.consult_forms(db, Enum.map(forms, &to_engine_form/1))}
       {:error, _} = err -> err
     end
   end
@@ -93,8 +103,14 @@ defmodule Aletheia do
   # goal with a top-level conjunction, i.e. almost every real query.
   defp parse_goal(text) do
     case Reader.consult_string(":- " <> text <> ".") do
-      {:ok, [{:directive, goal}], _ctx} -> {:ok, goal}
+      {:ok, [{:directive, goal}], _ctx} -> {:ok, ControlSyntax.to_goal(goal)}
       {:error, _} = err -> err
     end
   end
+
+  # Only rule bodies carry goals that get dispatched by the engine --
+  # fact terms and directives (op/3, ignored by Database.consult_forms
+  # anyway) pass through untouched. See `ControlSyntax` moduledoc.
+  defp to_engine_form({:rule, head, body}), do: {:rule, head, ControlSyntax.to_goal(body)}
+  defp to_engine_form(form), do: form
 end

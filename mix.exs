@@ -68,14 +68,14 @@ defmodule Aletheia.MixProject do
       # and never ships in a release. Both published to Hex now
       # (independent packages, independent release cadence -- ichor_runtime
       # is its own repo, not a subdirectory of ichor's).
-      {:ichor_runtime, "~> 0.1.0"},
-      {:ichor, "~> 0.2.0", only: :dev, runtime: false},
+      {:ichor_runtime, "~> 0.2"},
+      {:ichor, "~> 0.3", only: :dev, runtime: false},
       # Episteme is the standalone engine/database this reader is a
       # front-end for -- terms, unification, SLD-resolution, cut, and the
       # builtin predicates all live there now, not in this package (see
-      # DESIGN.md's `episteme_split`). Not yet published to Hex, so a path
-      # dependency onto a sibling checkout for now.
-      {:episteme, path: "../episteme"}
+      # DESIGN.md's `episteme_split`). Published to Hex now (own repo,
+      # own release cadence).
+      {:episteme, "~> 0.1"}
     ]
   end
 
