@@ -112,7 +112,10 @@ defmodule Aletheia.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/joetjen/aletheia"},
+      links: %{
+        "GitHub" => "https://github.com/joetjen/aletheia",
+        "Docs" => "https://joetjen.github.io/aletheia/"
+      },
       files: ~w(lib .formatter.exs mix.exs README.md CHANGELOG.md LICENSE guides examples)
     ]
   end
@@ -122,6 +125,9 @@ defmodule Aletheia.MixProject do
       main: "readme",
       source_url: "https://github.com/joetjen/aletheia",
       source_ref: "v#{@version}",
+      # Deployed by .github/workflows/docs.yml on every push to `main`.
+      homepage_url: "https://joetjen.github.io/aletheia/",
+      canonical: "https://joetjen.github.io/aletheia/",
       extras: extras(),
       groups_for_extras: groups_for_extras(),
       groups_for_modules: groups_for_modules()

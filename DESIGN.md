@@ -28,6 +28,7 @@ project:
   file_extension: .alp
   hex_package_name: aletheia
   hex_availability_checked: 2026-08-04 (ichor 0.3.0, ichor_runtime 0.2.0, episteme 0.1.0 all published)
+  docs_url: "https://joetjen.github.io/aletheia/ -- built by .github/workflows/docs.yml on push to main; Pages enabled on the repo but the workflow has not fired yet since aletheia itself has no release to main (see decisions_log's episteme_hex_release for the analogous aletheia-not-yet-on-Hex status)"
   host_language: Elixir
   host_platform: BEAM
   status: v0.1 implemented and tested (see roadmap); v0.2+ not started
