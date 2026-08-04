@@ -39,22 +39,26 @@ need-first rather than chasing full ISO/SWI completeness up front.
 
 ## Status
 
-**v0.1 is implemented and tested**: the reader (real Prolog syntax,
-`op/3`-driven operator precedence), the term representation, real
+**The entire v0.1-v0.5 roadmap is implemented and tested**: the reader
+(real Prolog syntax, `op/3`-driven operator precedence, string
+literals, `{}/1`, DCG rule syntax), the term representation (including
+a real string type — see `DESIGN.md`'s `string_type_decision`), real
 unification and backtracking, a genuinely clause-scoped cut (not a
 `once/1` stand-in — see [the reference](guides/REFERENCE.md#cut) for
-why that distinction is load-bearing), core control constructs,
-`is/2` arithmetic, exceptions (`throw/catch` + the standard ISO error
-terms), a runtime-mutable `op/3` operator table, the v0.1 list
-predicate family, minimal I/O, and a REPL. A handful of v0.2/v0.3
-predicates also work already — `assert`/`asserta`/`assertz`/`retract`/
-`retractall`, `findall/3`, `forall/2`, `between/3` — shipped early as
-part of `episteme`'s own initial extraction (see
-[the reference](guides/REFERENCE.md#database)). Everything else
-(`bagof`/`setof`, term inspection, standard order of terms, the
-atom/string predicate family, DCGs) is staged, need-first, across
-later milestones — see [the reference](guides/REFERENCE.md) for
-exactly which predicates exist today.
+why that distinction is load-bearing), the full control-construct and
+comparison family (`ignore/1`, `unify_with_occurs_check/2`, standard
+order of terms), `is/2` arithmetic (including trig/exp/log),
+exceptions, a runtime-mutable `op/3` operator table, the complete list
+predicate family (including the higher-order ones — `include`/
+`exclude`/`foldl`/`maplist`), aggregation (`findall`/`bagof`/`setof`),
+the dynamic database (`assert`/`retract`/`dynamic`/`abolish`/`clause`),
+the atom/number/string conversion family, `format/1,2`, DCG (`-->`/
+`phrase`), minimal I/O, and a REPL. Two narrow, deliberate gaps: `=../2`
+can't be tokenized by this reader's simplified lexer (use `univ/2`
+directly), and `format/2` has no column/radix directives — see
+[the reference](guides/REFERENCE.md) for exactly what's covered. Past
+v0.5, only the roadmap's explicitly unscheduled `later` bucket (module
+system, tabling, CLP(FD)) remains, and isn't started.
 
 ## Installation
 
@@ -69,9 +73,12 @@ def deps do
 end
 ```
 
-Aletheia's own `mix.exs` depends on
-[Episteme](https://hex.pm/packages/episteme) as a regular Hex dependency
-(`{:episteme, "~> 0.1"}`) — no sibling checkout needed.
+Aletheia's own `mix.exs` currently depends on
+[Episteme](https://hex.pm/packages/episteme) as a **path** dependency
+(`{:episteme, path: "../episteme"}`, a sibling checkout required) —
+interim, until episteme's own v0.2-v0.5 work is released to Hex (see
+`DESIGN.md`'s `aletheia_episteme_path_dependency_interim`); switches
+back to a plain Hex version constraint once it is.
 
 ## How it fits together
 
@@ -105,10 +112,10 @@ no dependency on Aletheia's reader or concrete syntax at all. This
 package (Aletheia) is the syntax front-end: the reader plus a REPL.
 
 - **`Aletheia.Reader`** — parses source into clause forms
-  (`{:fact, _}`/`{:rule, _, _}`/`{:directive, _}`), one top-level clause
-  at a time, threading the operator table `op/3` directives mutate from
-  each into the next. `Aletheia.Reader.Pratt` is the `@native(...)`
-  callback that does the actual precedence-climbing.
+  (`{:fact, _}`/`{:rule, _, _}`/`{:dcg, _, _}`/`{:directive, _}`), one
+  top-level clause at a time, threading the operator table `op/3`
+  directives mutate from each into the next. `Aletheia.Reader.Pratt` is
+  the `@native(...)` callback that does the actual precedence-climbing.
 - **`Episteme.Term`** — the term representation: atoms/numbers are
   plain Elixir atoms/integers/floats, lists are native Elixir lists
   (decomposing as ISO's own `'.'/2` cons functor so unification can
@@ -119,7 +126,8 @@ package (Aletheia) is the syntax front-end: the reader plus a REPL.
   `call/N`/`once/1`) over `Ichor.Backtrack`, plus a real clause-scoped
   cut (see [the reference](guides/REFERENCE.md#cut)).
 - **`Episteme.Builtins.*`** — arithmetic, exceptions, the list
-  predicate family, and minimal I/O.
+  predicate family, atom/number/string conversions, and I/O
+  (`write`/`format`/...); `Episteme.Dcg` translates DCG rules/bodies.
 - **`Aletheia.Repl`** — a consult + interactive query loop, pulling
   solutions one at a time (never forcing more of a search than you
   actually ask to see via `;`).

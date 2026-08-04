@@ -73,9 +73,13 @@ defmodule Aletheia.MixProject do
       # Episteme is the standalone engine/database this reader is a
       # front-end for -- terms, unification, SLD-resolution, cut, and the
       # builtin predicates all live there now, not in this package (see
-      # DESIGN.md's `episteme_split`). Published to Hex now (own repo,
-      # own release cadence).
-      {:episteme, "~> 0.1"}
+      # DESIGN.md's `episteme_split`). Path dependency for now (interim,
+      # same phase episteme_split's own path-dependency era was in before
+      # episteme_hex_release) -- episteme's develop branch has all of
+      # v0.2-v0.5, but hasn't been released to Hex yet. Switch back to a
+      # plain Hex version constraint once it is; see DESIGN.md's
+      # `aletheia_episteme_path_dependency_interim`.
+      {:episteme, path: "../episteme"}
     ]
   end
 
@@ -87,7 +91,7 @@ defmodule Aletheia.MixProject do
         "format",
         "compile --warnings-as-errors",
         "credo --strict",
-        "sobelow",
+        "sobelow --skip",
         "test",
         "dialyzer"
       ],

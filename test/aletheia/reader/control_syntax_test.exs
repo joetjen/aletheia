@@ -18,7 +18,13 @@ defmodule Aletheia.Reader.ControlSyntaxTest do
         {%Compound{name: :"=\\=", args: [1, 2]},
          %Compound{name: :numeric_not_equal, args: [1, 2]}},
         {%Compound{name: :"=<", args: [1, 2]}, %Compound{name: :less_or_equal, args: [1, 2]}},
-        {%Compound{name: :>=, args: [1, 2]}, %Compound{name: :greater_or_equal, args: [1, 2]}}
+        {%Compound{name: :>=, args: [1, 2]}, %Compound{name: :greater_or_equal, args: [1, 2]}},
+        {%Compound{name: :"@<", args: [:a, :b]}, %Compound{name: :order_less, args: [:a, :b]}},
+        {%Compound{name: :"@>", args: [:a, :b]}, %Compound{name: :order_greater, args: [:a, :b]}},
+        {%Compound{name: :"@=<", args: [:a, :b]},
+         %Compound{name: :order_less_or_equal, args: [:a, :b]}},
+        {%Compound{name: :"@>=", args: [:a, :b]},
+         %Compound{name: :order_greater_or_equal, args: [:a, :b]}}
       ]
 
       for {input, expected} <- cases do

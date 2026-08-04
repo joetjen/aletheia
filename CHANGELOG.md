@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The reader now reaches everything episteme's v0.2-v0.5 work
+  shipped**, closing out the entire numbered roadmap end to end through
+  `.alp` source:
+  - **Double-quoted string literals** (`"hello"`) — a real Elixir
+    binary, matching `DESIGN.md`'s `string_type_decision`, no escape
+    processing (same simplification quoted atoms already have).
+  - **`{Goal}`** (ISO's own `'{}'/1` term shape) — ordinary syntax
+    anywhere a term can appear.
+  - **DCG rules** (`Head --> Body.`) — a dedicated clause form (not
+    parsed through the operator table), producing a `{:dcg, head,
+    body}` form `Episteme.Database.consult_forms/2` translates and
+    stores; `phrase/2,3` and `dcg_translate/2` were already
+    plain-atom-functor goals needing no reader changes.
+  - **Standard order of terms operators** (`@<`, `@>`, `@=<`, `@>=`) —
+    added to the default operator table (priority 700, same class as
+    `=`/`==`) and to `Aletheia.Reader.ControlSyntax`'s translation
+    table (`order_less`/`order_greater`/`order_less_or_equal`/
+    `order_greater_or_equal`).
+  - Every other v0.2-v0.5 addition (`ignore/1`,
+    `unify_with_occurs_check/2`, `bagof/3`/`setof/3`, term inspection,
+    the dynamic-database round-out, the list-predicate family, the
+    atom/string conversion family, `format/1,2`) was already reachable
+    with zero reader changes — plain atom-functor goals flow through
+    untouched, the same way `between/3` and friends did in
+    `episteme_ahead_of_schedule`.
+  - **Known, deliberate gap**: `=../2` (`univ/2` works, but its ISO
+    punctuation can't be tokenized by this reader's simplified lexer —
+    a lone `.` inside a longer operator token is indistinguishable from
+    end-of-clause).
+  - `mix.exs`'s `episteme` dependency switched to a **path** dependency
+    (`{:episteme, path: "../episteme"}`), interim until episteme's own
+    v0.2-v0.5 work is released to Hex — see `DESIGN.md`'s
+    `aletheia_episteme_path_dependency_interim`.
+  - Fixed a pre-existing gap found along the way: `mix precommit`'s
+    `sobelow` step ran without `--skip`, silently ignoring every
+    `#sobelow_skip` comment in the codebase (episteme's own equivalent
+    alias already had this right). Now `"sobelow --skip"`, matching
+    episteme; used it to justify the reader's own atom-creation risk
+    (routed through one `to_prolog_atom/1` instead of five separate
+    call sites) the same way episteme's `Episteme.Builtins.Strings`
+    already does.
+  - `guides/REFERENCE.md`/`CHEATSHEET.md`/`README.md` updated
+    throughout; see `test/aletheia/reader_test.exs`,
+    `test/aletheia/reader/control_syntax_test.exs`, and
+    `test/aletheia/end_to_end_test.exs` for the new coverage.
 - **Docs are now cross-referenced from the project config**: `mix.exs`
   sets `homepage_url`/`canonical` (docs) and a `"Docs"` package link
   pointing at the GitHub Pages site

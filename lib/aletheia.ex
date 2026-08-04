@@ -28,6 +28,12 @@ defmodule Aletheia do
 
   @type solution :: Episteme.solution()
 
+  # sobelow_skip ["Traversal.FileModule"]
+  # `path` is a plain library argument the caller supplies directly
+  # (load *this* `.alp` file, the same shape `File.read!/1` always
+  # has for a "load a source file" API) -- not attacker-controlled
+  # input threaded in from an untrusted request. Low-confidence false
+  # positive.
   @doc "Loads a `.alp` source file into a fresh database."
   @spec consult(String.t()) :: {:ok, Database.t()} | {:error, term()}
   def consult(path) do
@@ -59,6 +65,13 @@ defmodule Aletheia do
 
   def query(goal, db), do: Episteme.query(goal, db)
 
+  # sobelow_skip ["SQL.Query"]
+  # Flagged purely on the function's name (matches episteme's own
+  # identical `Episteme.query_once/2` false positive) -- this module
+  # has no database driver, no Ecto, no raw SQL string anywhere in it;
+  # `goal`/`db` are a Prolog goal (source text or an already-parsed
+  # term) and an `Episteme.Database.t()`, never interpolated into a
+  # query string of any kind. Low-confidence false positive.
   @doc "Like `query/2`, but returns only the first solution (or `:none`)."
   @spec query_once(String.t() | term(), Database.t()) ::
           {:ok, solution()} | :none | {:error, term()}
@@ -110,7 +123,14 @@ defmodule Aletheia do
 
   # Only rule bodies carry goals that get dispatched by the engine --
   # fact terms and directives (op/3, ignored by Database.consult_forms
-  # anyway) pass through untouched. See `ControlSyntax` moduledoc.
+  # anyway) pass through untouched. See `ControlSyntax` moduledoc. A DCG
+  # rule's own body is control-syntax-translated the same way an
+  # ordinary rule's is -- `Head --> a, {foo(X)}, (b ; c).` uses the same
+  # ISO punctuation an ordinary goal does, and `Episteme.Dcg.translate_body/3`
+  # (which `Episteme.Database.consult_forms/2`'s own `{:dcg, _, _}` form
+  # calls) expects Episteme's plain-English names already, exactly like
+  # `Episteme.Engine`'s own dispatch does.
   defp to_engine_form({:rule, head, body}), do: {:rule, head, ControlSyntax.to_goal(body)}
+  defp to_engine_form({:dcg, head, body}), do: {:dcg, head, ControlSyntax.to_goal(body)}
   defp to_engine_form(form), do: form
 end
