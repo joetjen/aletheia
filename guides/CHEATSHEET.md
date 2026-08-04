@@ -87,6 +87,7 @@ Cond -> Then ; Else   % if-then-else
 \+ Goal               % negation as failure
 call(Goal, Extra...)  % call/1..8, cut-opaque
 once(Goal)            % first solution only, cut-opaque -- NOT the same as !
+forall(Cond, Action)  % every solution of Cond has a solution of Action
 true. fail. false.
 ```
 
@@ -127,6 +128,7 @@ integer(X)  float(X)  compound(X)  callable(X)  is_list(X)
 X is 2 + 3 * 4        % standard precedence, is/2 evaluates the RHS
 + - * / // mod rem ** ^ abs/1 sign/1 min/2 max/2 sqrt/1
 =:= =\= < > =< >=      % arithmetic comparison (evaluates both sides)
+between(Low, High, X)  % X unbound: enumerates; X bound: membership check
 ```
 
 ## Exceptions
@@ -141,6 +143,14 @@ instantiation_error(_)
 
 Uncaught -> `{:error, term}` from `Aletheia.query/2`, not a crash.
 Undefined predicate -> `existence_error(procedure, Name/Arity)`.
+
+## Database and aggregation
+
+```prolog
+assert(Clause)  assertz(Clause)  asserta(Clause)  % assert is a classic alias of assertz
+retract(Clause)  retractall(HeadPattern)
+findall(Template, Goal, List)   % [] when Goal has no solutions, not failure
+```
 
 ## Lists
 

@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A handful of v0.2/v0.3 predicates already work, ahead of schedule**:
+  `assert/1`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`
+  (dynamic database), `findall/3` (aggregation), `forall/2`, and
+  `between/3` (not even ISO, a de facto library predicate) — all
+  shipped as part of `episteme` 0.1.0's own initial extraction and
+  confirmed working end-to-end through `.alp` source and
+  `Aletheia`'s top-level API with zero Aletheia-side code changes
+  (none involve ISO punctuation, so `Aletheia.Reader.ControlSyntax`
+  never needed to touch them). Previously undocumented and untested at
+  this level; now covered in
+  [`guides/REFERENCE.md`](guides/REFERENCE.md#database) and
+  `test/aletheia/end_to_end_test.exs`. See `DESIGN.md`'s
+  `episteme_ahead_of_schedule` decisions_log entry.
 - **v0.1 milestone, complete**: reader, term representation,
   unification, SLD-resolution, a genuinely clause-scoped cut, core
   control constructs, `is/2` arithmetic, exceptions, a runtime-mutable

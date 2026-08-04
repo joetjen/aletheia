@@ -1,9 +1,15 @@
 # Reference
 
-Every predicate implemented in Aletheia's current milestone (v0.1),
+Every predicate implemented and reachable from `.alp` source today,
 with its signature, semantics, and enough of an example to use it
-correctly. What's coming in v0.2+ (a dynamic database with `assert`/
-`retract`, `findall`/`bagof`/`setof`, the atom/string predicate family,
+correctly. Most of this is v0.1; a handful of v0.2/v0.3 predicates
+(`assert`/`asserta`/`assertz`/`retract`/`retractall`, `findall/3`,
+`forall/2`, `between/3`) shipped early as part of `episteme`'s own
+initial extraction and are documented here too, even though the
+project's own milestone roadmap (`DESIGN.md`) still tracks them under
+later versions — see [Database](#database) and [Aggregation](#aggregation)
+below. What's still genuinely not there yet (`bagof`/`setof`, term
+inspection, standard order of terms, the atom/string predicate family,
 DCGs) is staged, need-first, not chased ahead of actual need.
 
 ## Syntax
@@ -80,6 +86,7 @@ today, not a bare operator token.
 | `\+/1` | Negation as failure — succeeds iff the argument goal has no solution; never binds anything. |
 | `call/1..8` | Calls a goal built from a (possibly partially-applied) term, plus any extra arguments appended to it. Opaque to cut — a `!` inside `call/1` never escapes to the caller. |
 | `once/1` | The first solution of a goal, discarding the rest — *not* the same as cut (see [Cut](#cut)). Also cut-opaque. |
+| `forall/2` | `forall(Cond, Action)` — succeeds iff every solution of `Cond` has at least one solution of `Action`. Never binds anything, like `\+/1`. Cut-opaque in both arguments. |
 
 ```prolog
 % if-then-else
@@ -224,6 +231,18 @@ Aletheia.query("X is 7 // 2", db)     #=> {:ok, [%{"X" => 3}]}
 Aletheia.query("3 =:= 3.0", db)       #=> {:ok, [%{}]}
 ```
 
+`between/3` is a goal, not an expression functor (not ISO, but a de
+facto standard across most Prolog implementations): `between(Low,
+High, X)` enumerates every integer in `[Low, High]` on backtracking
+when `X` is unbound, or just checks membership when it's bound. `Low`/
+`High` are evaluated as arithmetic expressions, same as `is/2`'s
+right-hand side.
+
+```elixir
+Aletheia.query("between(1, 5, X)", db)
+#=> {:ok, [%{"X" => 1}, %{"X" => 2}, %{"X" => 3}, %{"X" => 4}, %{"X" => 5}]}
+```
+
 ## Exceptions
 
 | Predicate | Description |
@@ -271,6 +290,45 @@ only changes what parses, not what `is/2` knows how to compute — `X is
 1 likes 2` would still raise a `type_error(evaluable, _)` unless
 `likes` also happened to be one of the functors
 [Arithmetic](#arithmetic) already recognizes.
+
+## Database
+
+Mutating the clause database at query time — effects persist across
+separate `Aletheia.query/2` calls against the same database, not just
+within one. No `dynamic/1` declaration is required first: `assert`ing a
+brand-new predicate works immediately, unlike strict ISO Prolog.
+
+| Predicate | Description |
+| --- | --- |
+| `assert/1`, `assertz/1` | Adds a clause (`Head` or `Head :- Body`) at the *end* of its predicate's clause list. `assert/1` is a classic alias of `assertz/1`. |
+| `asserta/1` | Like `assertz/1`, but adds the clause at the *front*. |
+| `retract/1` | Removes the first stored clause (in declared/assert order) whose head and body both unify with the argument (a bare `Head` matches a fact, i.e. body `true`). Fails, without side effects, if nothing matches. Deterministic on success — backtracking into it does not try the next match. |
+| `retractall/1` | Removes every stored clause whose *head* unifies with the argument (bodies ignored). Always succeeds, even against an undefined or already-empty predicate. Never binds anything. |
+
+```elixir
+{:ok, db} = Aletheia.consult_string("p(a). p(b).")
+Aletheia.query("assertz(p(c)), findall(X, p(X), L)", db)
+#=> {:ok, [%{"L" => [:a, :b, :c]}]}
+
+Aletheia.query_once("assert(q(1)), retract(q(1)), \\+ q(1)", db)
+#=> {:ok, %{}}
+```
+
+## Aggregation
+
+| Predicate | Description |
+| --- | --- |
+| `findall/3` | `findall(Template, Goal, List)` — `List` is every instantiation of `Template` across every solution of `Goal`, in order. `[]` (not failure) when `Goal` has no solutions. Cut-opaque. |
+
+`bagof/3`/`setof/3` (which fail, rather than returning `[]`, when
+`Goal` has no solutions, and group by free variables) are not
+implemented yet.
+
+```elixir
+{:ok, db} = Aletheia.consult_string("parent(tom, bob). parent(tom, liz).")
+Aletheia.query("findall(X, parent(tom, X), L)", db)
+#=> {:ok, [%{"L" => [:bob, :liz]}]}
+```
 
 ## Lists
 

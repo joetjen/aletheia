@@ -220,139 +220,140 @@ roadmap tag it ships in (§7). `classic_name` is always the ISO/canonical
 name; `modern_alias` is empty when rule_3 applies (name already clear).
 
 ```toon
-predicate_catalog[97]{category,classic_name,arity,modern_alias,milestone,notes}:
-  control,true,0,,v0.1,
-  control,fail,0,,v0.1,"false/0 is a standard alias, both classic"
-  control,",",2,,v0.1,"conjunction; maps to Backtrack.conjunction/2"
-  control,;,2,,v0.1,"disjunction; maps to Backtrack.disjunction/2"
-  control,->,2,,v0.1,if-then
-  control,!,0,cut,v0.1,"see risk cut-scoping; NOT a thin once/1 wrapper"
-  control,\+,1,,v0.1,negation as failure
-  control,call,1,,v0.1,
-  control,call,2,,v0.1,"call/N up to at least 8, partial application"
-  control,once,1,,v0.1,"this one genuinely IS Backtrack.once/1 directly"
-  control,forall,2,,v0.2,"expressible via \\+ (Cond, \\+ Action)"
-  control,ignore,1,,v0.2,
-  unify,=,2,,v0.1,"Backtrack.Bindings.unify/4"
-  unify,\=,2,,v0.1,
-  unify,unify_with_occurs_check,2,,v0.2,"Backtrack.Bindings.unify_occurs_check/4 already exists"
-  compare,==,2,,v0.1,structural equality
-  compare,\==,2,not_equal,v0.1,
-  compare,@<,2,,v0.2,standard order of terms
-  compare,@>,2,,v0.2,standard order of terms
-  compare,@=<,2,,v0.2,standard order of terms
-  compare,@>=,2,,v0.2,standard order of terms
-  compare,compare,3,,v0.2,standard order of terms
-  type_check,var,1,,v0.1,
-  type_check,nonvar,1,,v0.1,
-  type_check,atom,1,,v0.1,
-  type_check,atomic,1,,v0.1,
-  type_check,number,1,,v0.1,
-  type_check,integer,1,,v0.1,
-  type_check,float,1,,v0.1,
-  type_check,compound,1,,v0.1,
-  type_check,callable,1,,v0.1,
-  type_check,is_list,1,,v0.1,
-  type_check,ground,1,,v0.2,"needs recursive var-freedom check"
-  term_inspect,functor,3,,v0.2,
-  term_inspect,arg,3,,v0.2,
-  term_inspect,=..,2,univ,v0.2,
-  term_inspect,copy_term,2,,v0.1,"internal machinery too: needed for clause instantiation on every resolution step, expose as predicate in v0.1"
-  arithmetic,is,2,,v0.1,
-  arithmetic,+,2,,v0.1,"as arithmetic functor inside is/2 expressions"
-  arithmetic,-,2,,v0.1,
-  arithmetic,*,2,,v0.1,
-  arithmetic,/,2,,v0.1,
-  arithmetic,//,2,,v0.1,integer division
-  arithmetic,mod,2,,v0.1,
-  arithmetic,rem,2,,v0.1,
-  arithmetic,abs,1,,v0.1,
-  arithmetic,sign,1,,v0.1,
-  arithmetic,min,2,,v0.1,
-  arithmetic,max,2,,v0.1,
-  arithmetic,sqrt,1,,v0.1,
-  arithmetic,**,2,,v0.1,
-  arithmetic,^,2,,v0.1,
-  arithmetic,sin,1,,v0.2,
-  arithmetic,cos,1,,v0.2,
-  arithmetic,tan,1,,v0.2,
-  arithmetic,exp,1,,v0.2,
-  arithmetic,log,1,,v0.2,
-  arith_compare,=:=,2,,v0.1,
-  arith_compare,=\=,2,,v0.1,
-  arith_compare,<,2,,v0.1,
-  arith_compare,>,2,,v0.1,
-  arith_compare,=<,2,,v0.1,
-  arith_compare,>=,2,,v0.1,
-  exception,throw,1,,v0.1,
-  exception,catch,3,,v0.1,
-  exception,type_error,2,,v0.1,"standard error-term constructor helper"
-  exception,domain_error,2,,v0.1,"standard error-term constructor helper"
-  exception,instantiation_error,1,,v0.1,"standard error-term constructor helper"
-  exception,existence_error,2,,v0.2,"standard error-term constructor helper"
-  operator,op,3,,v0.1,"feeds Ichor.Toolkit.Pratt table directly"
-  database,dynamic,1,,v0.2,directive
-  database,assert,1,assertz_alias,v0.2,"classic alias of assertz/1"
-  database,asserta,1,,v0.2,
-  database,assertz,1,,v0.2,
-  database,retract,1,,v0.2,
-  database,retractall,1,,v0.2,
-  database,abolish,1,,v0.2,
-  database,clause,2,,v0.2,
-  aggregate,findall,3,,v0.3,
-  aggregate,bagof,3,,v0.3,
-  aggregate,setof,3,,v0.3,
-  aggregate,aggregate_all,3,,later,
-  list,length,2,,v0.1,
-  list,append,3,,v0.1,
-  list,member,2,,v0.1,
-  list,reverse,2,,v0.1,
-  list,nth0,3,,v0.1,
-  list,nth1,3,,v0.1,
-  list,last,2,,v0.1,
-  list,msort,2,,v0.2,"needs standard order of terms"
-  list,sort,2,,v0.2,dedups + sorts by standard order
-  list,sort,4,,later,key/order variants
-  list,permutation,2,,v0.2,
-  list,sum_list,2,sumlist_alias,v0.2,
-  list,max_list,2,,v0.2,
-  list,min_list,2,,v0.2,
-  list,list_to_set,2,,v0.2,
-  list,exclude,3,,v0.2,
-  list,include,3,,v0.2,
-  list,foldl,4,,v0.2,"foldl/4..6 family for 1-3 list args"
-  list,maplist,2,,v0.2,"maplist/2..6 family"
-  atom_string,atom_codes,2,,v0.4,
-  atom_string,atom_chars,2,,v0.4,
-  atom_string,atom_length,2,,v0.4,
-  atom_string,atom_concat,3,,v0.4,
-  atom_string,char_code,2,,v0.4,
-  atom_string,number_codes,2,,v0.4,
-  atom_string,number_chars,2,,v0.4,
-  atom_string,upcase_atom,2,,v0.4,
-  atom_string,downcase_atom,2,,v0.4,
-  atom_string,sub_atom,5,,v0.4,
-  atom_string,split_string,4,,v0.4,"needs real string type decision, see term_deferred_decisions"
-  atom_string,atomic_list_concat,2,,v0.4,"rule_2 alias candidate: opaque name"
-  atom_string,atomic_list_concat,3,,v0.4,"rule_2 alias candidate: opaque name"
-  io,write,1,,v0.1,"minimal REPL output need"
-  io,writeln,1,,v0.1,
-  io,print,1,write_alias,v0.1,"rule_2: readable alias of write/1"
-  io,nl,0,,v0.1,
-  io,format,2,,v0.4,
-  io,read_term,2,,later,
-  dcg,-->,2,dcg_translate,v0.5,"grammar-rule clause translation at load time"
-  dcg,phrase,2,,v0.5,
-  dcg,phrase,3,,v0.5,
+predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status,notes}:
+  control,true,0,,v0.1,implemented,
+  control,fail,0,,v0.1,implemented,"false/0 is a standard alias, both classic"
+  control,",",2,,v0.1,implemented,"conjunction; maps to Backtrack.conjunction/2"
+  control,;,2,,v0.1,implemented,"disjunction; maps to Backtrack.disjunction/2"
+  control,->,2,,v0.1,implemented,if-then
+  control,!,0,cut,v0.1,implemented,"see risk cut-scoping; NOT a thin once/1 wrapper"
+  control,\+,1,,v0.1,implemented,negation as failure
+  control,call,1,,v0.1,implemented,
+  control,call,2,,v0.1,implemented,"call/N up to at least 8, partial application"
+  control,once,1,,v0.1,implemented,"this one genuinely IS Backtrack.once/1 directly"
+  control,forall,2,,v0.2,implemented,"expressible via \\+ (Cond, \\+ Action); shipped ahead of schedule as part of episteme 0.1.0 -- see episteme_ahead_of_schedule"
+  control,ignore,1,,v0.2,not_started,
+  unify,=,2,,v0.1,implemented,"Backtrack.Bindings.unify/4"
+  unify,\=,2,,v0.1,implemented,
+  unify,unify_with_occurs_check,2,,v0.2,not_started,"Backtrack.Bindings.unify_occurs_check/4 already exists in ichor_runtime -- just not wired up as a callable goal yet"
+  compare,==,2,,v0.1,implemented,structural equality
+  compare,\==,2,not_equal,v0.1,implemented,
+  compare,@<,2,,v0.2,not_started,standard order of terms
+  compare,@>,2,,v0.2,not_started,standard order of terms
+  compare,@=<,2,,v0.2,not_started,standard order of terms
+  compare,@>=,2,,v0.2,not_started,standard order of terms
+  compare,compare,3,,v0.2,not_started,standard order of terms
+  type_check,var,1,,v0.1,implemented,
+  type_check,nonvar,1,,v0.1,implemented,
+  type_check,atom,1,,v0.1,implemented,
+  type_check,atomic,1,,v0.1,implemented,
+  type_check,number,1,,v0.1,implemented,
+  type_check,integer,1,,v0.1,implemented,
+  type_check,float,1,,v0.1,implemented,
+  type_check,compound,1,,v0.1,implemented,
+  type_check,callable,1,,v0.1,implemented,
+  type_check,is_list,1,,v0.1,implemented,
+  type_check,ground,1,,v0.2,not_started,"needs recursive var-freedom check"
+  term_inspect,functor,3,,v0.2,not_started,
+  term_inspect,arg,3,,v0.2,not_started,
+  term_inspect,=..,2,univ,v0.2,not_started,
+  term_inspect,copy_term,2,,v0.1,implemented,"internal machinery too: needed for clause instantiation on every resolution step, expose as predicate in v0.1"
+  arithmetic,is,2,,v0.1,implemented,
+  arithmetic,+,2,,v0.1,implemented,"as arithmetic functor inside is/2 expressions"
+  arithmetic,-,2,,v0.1,implemented,
+  arithmetic,*,2,,v0.1,implemented,
+  arithmetic,/,2,,v0.1,implemented,
+  arithmetic,//,2,,v0.1,implemented,integer division
+  arithmetic,mod,2,,v0.1,implemented,
+  arithmetic,rem,2,,v0.1,implemented,
+  arithmetic,abs,1,,v0.1,implemented,
+  arithmetic,sign,1,,v0.1,implemented,
+  arithmetic,min,2,,v0.1,implemented,
+  arithmetic,max,2,,v0.1,implemented,
+  arithmetic,sqrt,1,,v0.1,implemented,
+  arithmetic,**,2,,v0.1,implemented,
+  arithmetic,^,2,,v0.1,implemented,
+  arithmetic,between,3,,v0.1,implemented,"not ISO -- de facto library predicate (SWI etc). Not originally scoped in this catalog at all; shipped as part of episteme 0.1.0's initial extraction and exposed via Aletheia automatically, since it's a plain atom functor with nothing for ControlSyntax to translate -- see episteme_ahead_of_schedule"
+  arithmetic,sin,1,,v0.2,not_started,
+  arithmetic,cos,1,,v0.2,not_started,
+  arithmetic,tan,1,,v0.2,not_started,
+  arithmetic,exp,1,,v0.2,not_started,
+  arithmetic,log,1,,v0.2,not_started,
+  arith_compare,=:=,2,,v0.1,implemented,
+  arith_compare,=\=,2,,v0.1,implemented,
+  arith_compare,<,2,,v0.1,implemented,
+  arith_compare,>,2,,v0.1,implemented,
+  arith_compare,=<,2,,v0.1,implemented,
+  arith_compare,>=,2,,v0.1,implemented,
+  exception,throw,1,,v0.1,implemented,
+  exception,catch,3,,v0.1,implemented,
+  exception,type_error,2,,v0.1,implemented,"standard error-term constructor helper"
+  exception,domain_error,2,,v0.1,implemented,"standard error-term constructor helper"
+  exception,instantiation_error,1,,v0.1,implemented,"standard error-term constructor helper"
+  exception,existence_error,2,,v0.2,partial,"standard error-term constructor helper; already thrown internally on an undefined-predicate call (Episteme.Engine.solve_user_predicate/2), not yet exposed as a directly-callable goal the way type_error/2 and friends are"
+  operator,op,3,,v0.1,implemented,"feeds Ichor.Toolkit.Pratt table directly"
+  database,dynamic,1,,v0.2,not_started,directive
+  database,assert,1,assertz_alias,v0.2,implemented,"classic alias of assertz/1; shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  database,asserta,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  database,assertz,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  database,retract,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  database,retractall,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  database,abolish,1,,v0.2,not_started,
+  database,clause,2,,v0.2,not_started,"Episteme.Database.clauses_for/3 exists as an internal Elixir API; not yet exposed as a callable goal"
+  aggregate,findall,3,,v0.3,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
+  aggregate,bagof,3,,v0.3,not_started,
+  aggregate,setof,3,,v0.3,not_started,
+  aggregate,aggregate_all,3,,later,not_started,
+  list,length,2,,v0.1,implemented,
+  list,append,3,,v0.1,implemented,
+  list,member,2,,v0.1,implemented,
+  list,reverse,2,,v0.1,implemented,
+  list,nth0,3,,v0.1,implemented,
+  list,nth1,3,,v0.1,implemented,
+  list,last,2,,v0.1,implemented,
+  list,msort,2,,v0.2,not_started,"needs standard order of terms"
+  list,sort,2,,v0.2,not_started,dedups + sorts by standard order
+  list,sort,4,,later,not_started,key/order variants
+  list,permutation,2,,v0.2,not_started,
+  list,sum_list,2,sumlist_alias,v0.2,not_started,
+  list,max_list,2,,v0.2,not_started,
+  list,min_list,2,,v0.2,not_started,
+  list,list_to_set,2,,v0.2,not_started,
+  list,exclude,3,,v0.2,not_started,
+  list,include,3,,v0.2,not_started,
+  list,foldl,4,,v0.2,not_started,"foldl/4..6 family for 1-3 list args"
+  list,maplist,2,,v0.2,not_started,"maplist/2..6 family"
+  atom_string,atom_codes,2,,v0.4,not_started,
+  atom_string,atom_chars,2,,v0.4,not_started,
+  atom_string,atom_length,2,,v0.4,not_started,
+  atom_string,atom_concat,3,,v0.4,not_started,
+  atom_string,char_code,2,,v0.4,not_started,
+  atom_string,number_codes,2,,v0.4,not_started,
+  atom_string,number_chars,2,,v0.4,not_started,
+  atom_string,upcase_atom,2,,v0.4,not_started,
+  atom_string,downcase_atom,2,,v0.4,not_started,
+  atom_string,sub_atom,5,,v0.4,not_started,
+  atom_string,split_string,4,,v0.4,not_started,"needs real string type decision, see term_deferred_decisions"
+  atom_string,atomic_list_concat,2,,v0.4,not_started,"rule_2 alias candidate: opaque name"
+  atom_string,atomic_list_concat,3,,v0.4,not_started,"rule_2 alias candidate: opaque name"
+  io,write,1,,v0.1,implemented,"minimal REPL output need"
+  io,writeln,1,,v0.1,implemented,
+  io,print,1,write_alias,v0.1,implemented,"rule_2: readable alias of write/1"
+  io,nl,0,,v0.1,implemented,
+  io,format,2,,v0.4,not_started,
+  io,read_term,2,,later,not_started,
+  dcg,-->,2,dcg_translate,v0.5,not_started,"grammar-rule clause translation at load time"
+  dcg,phrase,2,,v0.5,not_started,
+  dcg,phrase,3,,v0.5,not_started,
 ```
 
 ## 7. Roadmap
 
 ```toon
-roadmap[7]{version,theme,status}:
+roadmap[6]{version,theme,status}:
   v0.1,"minimal true core: reader (lexer+Pratt), Term IR, unification, SLD-resolution, cut (real, not once/1-only), core control, is/2 arithmetic, exceptions, op/3, minimal I/O, REPL/consult",done
-  v0.2,"dynamic database (assert/retract family), term inspection (functor/arg/univ), standard order of terms, ground/1, more list predicates, forall/ignore",not_started
-  v0.3,"aggregation: findall/bagof/setof",not_started
+  v0.2,"dynamic database (assert/retract family), term inspection (functor/arg/univ), standard order of terms, ground/1, more list predicates, forall/ignore -- partially done ahead of schedule: assert/asserta/assertz/retract/retractall/forall all shipped as part of episteme 0.1.0's initial extraction and confirmed working end-to-end through Aletheia already (see episteme_ahead_of_schedule, decisions_log); dynamic/1, abolish/1, clause/2, term inspection, standard order of terms, ground/1, and the v0.2 list-predicate family are still genuinely not started",partial
+  v0.3,"aggregation: findall/bagof/setof -- findall/3 already shipped ahead of schedule alongside the v0.2 items above (see episteme_ahead_of_schedule); bagof/3 and setof/3 still not started",partial
   v0.4,"real string type decision + atom/string predicate family + format/2",not_started
   v0.5,"DCG (-->/phrase)",not_started
   later,"module system, tabling, CLP(FD) — explicitly unscheduled, need-driven only",not_started
@@ -370,7 +371,7 @@ interop:
 ## 9. Decisions log
 
 ```toon
-decisions_log[16]{date,decision,choice,status}:
+decisions_log[19]{date,decision,choice,status}:
   2026-07-27,embedding_model,"classic Prolog syntax via reader (not Elixir-native macros)",final
   2026-07-27,engine_strategy,"tree-walking / lazy-search interpreter (not WAM bytecode compilation)",final_for_v0.1-v0.5
   2026-07-27,initial_scope,"minimal true core first, staged expansion need-first (not full-ISO-upfront)",final
@@ -389,6 +390,7 @@ decisions_log[16]{date,decision,choice,status}:
   2026-08-01,episteme_split,"split Aletheia.Term/Database/Engine/Builtins.* out into a new sibling package, episteme (Episteme.Term/Database/Engine/Builtins.*, plus a top-level Episteme module mirroring Aletheia's own query/2 family but over already-built terms, no text parsing). Rationale: none of unification/SLD-resolution/clause storage/cut/builtins depend on Aletheia's syntax concretely -- Aletheia's reader is one producer of Episteme terms, not the only possible one, and the split lets Episteme stand alone as a Prolog-like rule engine/query layer for Elixir callers who don't want .alp syntax at all. Internal-only Elixir throw tags renamed :aletheia_throw/:aletheia_cut -> :episteme_throw/:episteme_cut (Episteme.Engine/Episteme.Builtins.Exceptions), since they're now Episteme's own implementation detail, not Aletheia's. aletheia depends on episteme via {:episteme, path: \"../episteme\"} (both still pre-Hex-release); ichor_runtime is now a dependency of both packages directly (episteme for Backtrack/TermWalk, aletheia for Toolkit.Pratt in the reader itself) -- see 3.1",superseded_by_episteme_hex_release_2026-08-04 (path dependency replaced by a plain Hex version constraint once episteme was published; the split itself is unchanged and still holds)
   2026-08-04,episteme_hex_release,"episteme published to Hex as episteme 0.1.0 (own repository, github.com/joetjen/episteme, independent release cadence from aletheia). aletheia's mix.exs dependency simplified from {:episteme, path: \"../episteme\"} to plain {:episteme, \"~> 0.1\"} -- no sibling checkout required to build aletheia anymore. Pulled in ichor_runtime ~> 0.2 and ichor ~> 0.3 transitively (episteme's own runtime dependency), both bumped here too; regenerated grammar_generated.ex against ichor 0.3's codegen (raw capture shape change, map -> ordered list -- see ichor's own CHANGELOG 0.3.0) to stay current",final
   2026-08-04,episteme_control_syntax_translation,"episteme 0.1.0's own first Hex release renamed every ISO-punctuation control construct/comparison operator it dispatches on to a plain-English name (,/2 -> and/2, ;/2 -> or/2, ! -> cut, \\+/1 -> not/1, (Cond->Then;Else) -> if_then_else/3 (explicit, replacing an old implicit ;-wrapping-> pattern match the engine no longer does), (Cond->Then) -> if_then/2, =/2 -> unify/2, \\=/2 -> not_unify/2, ==/2 -> equal/2, \\==/2 -> not_equal/2, =:=/2 -> numeric_equal/2, =\\=/2 -> numeric_not_equal/2, =</2 -> less_or_equal/2, >=/2 -> greater_or_equal/2; +,-,*,/,<,> unchanged, never punctuation-as-control to begin with) -- Episteme has no reader of its own for ISO punctuation to be conventional syntax against. Aletheia.Reader itself keeps producing ISO-punctuation-named terms unchanged (reader_test.exs asserts this directly, and it is the correct, syntax-faithful reading of `.alp` source); the new Aletheia.Reader.ControlSyntax.to_goal/1 bridges the gap, applied by lib/aletheia.ex to rule bodies (before Database.consult_forms/2) and query/query_lazy goals (after parse_goal/1), never to fact terms or rule heads (plain data, matched structurally, never dispatched as goals). Implemented as an Ichor.Toolkit.TermWalk.rewrite/3 pass: transform is applied top-down before TermWalk's own recursion into the (possibly-just-returned) compound's args, so the if-then-else special case can pattern-match the still-untranslated ;-wrapping-> shape directly at the parent node and emit if_then_else/3 in one step, while every other node falls through to a plain {name,arity} -> new_name table lookup",final
+  2026-08-05,episteme_ahead_of_schedule,"audit against predicate_catalog found episteme 0.1.0's initial extraction (see episteme_split) shipped several predicates beyond aletheia's own originally-scoped v0.1 catalog: assert/1, asserta/1, assertz/1, retract/1, retractall/1, forall/2, and findall/3 (all catalog-tagged v0.2/v0.3, roadmap-tagged not_started), plus between/3 (not in the catalog at all). None needed any Aletheia-side work to reach `.alp` callers -- none involve ISO punctuation, so Aletheia.Reader.ControlSyntax never touches them; a plain atom-functor goal like assert(foo(1)) already flows untouched from the reader straight through to Episteme.Engine. Verified end-to-end via Aletheia.query/2 (assert+retract, assertz+findall, forall, between all producing correct solutions) before updating this doc. predicate_catalog retrofitted with a status column (implemented/partial/not_started) to make this distinction from milestone (the intended scope grouping) explicit going forward -- see `0`'s own on_milestone_completion rule, which already presumed this column existed. Also found and fixed three stale TOON row-count headers unrelated to this specific gap: predicate_catalog[97] (actually 123 rows before this change), roadmap[7] (actually 6), decisions_log[16] (actually 18, from two earlier entries added without updating the header)",final
 ```
 
 ## 10. Glossary (Prolog terms, for an agent without Prolog background)
