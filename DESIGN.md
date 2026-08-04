@@ -31,7 +31,7 @@ project:
   docs_url: "https://joetjen.github.io/aletheia/ -- built by .github/workflows/docs.yml on push to main; Pages enabled on the repo but the workflow has not fired yet since aletheia itself has no release to main (see decisions_log's episteme_hex_release for the analogous aletheia-not-yet-on-Hex status)"
   host_language: Elixir
   host_platform: BEAM
-  status: v0.1 implemented and tested (see roadmap); v0.2+ not started
+  status: "v0.1 implemented and tested; v0.2 through v0.5 (the entire numbered roadmap) all catalog-complete in episteme's own repo (develop branch) but not yet released to Hex or consumable via Aletheia -- see episteme_v0_2_completed/episteme_v0_3_completed/episteme_v0_4_atom_string_family/episteme_v0_4_format/episteme_v0_5_dcg; only 'later' (module system, tabling, CLP(FD) -- explicitly unscheduled, need-driven only) remains (see roadmap)"
   local_path: "~/Projects/__mine__/aletheia"
   hard_dependency: "ichor_runtime ~> 0.2 (real runtime dep, own Hex package/repo) + ichor ~> 0.3 (only: :dev, runtime: false) -- both published to Hex; see ichor_runtime_split -- plus episteme ~> 0.1 (own Hex package/repo now too), the standalone engine/database this package's reader is a front-end for; see episteme_split"
   license: MIT (see LICENSE)
@@ -191,10 +191,11 @@ but the type definitions and the `Ichor.Backtrack.Term` implementation
 both live in the `episteme` package.
 
 ```toon
-terms[6]{prolog_term,elixir_representation,notes}:
+terms[7]{prolog_term,elixir_representation,notes}:
   atom,":name (raw Elixir atom)","see risk atom-table-exhaustion"
   integer,integer,"native BEAM bignum, no overflow handling needed"
   float,float,"native; IEEE 754 double, matches ISO float semantics closely enough for v0.1"
+  string,"binary (String.t())","see string_type_decision; native Elixir UTF-8 binary, a genuinely new atomic term class (not a list of codes) -- matches by plain ==/2 (exact byte equality), never structurally decomposed by unify (compound?/1 is false for it); standard order of terms places it between atom and compound (Var < Number < Atom < String < Compound); Aletheia's own double-quoted \"...\" reader syntax not yet wired up -- see decisions_log"
   variable,"%Episteme.Term.Var{ref: reference(), name: String.t()}","ref is var_id/1 for Backtrack.Term; name is display-only, never used for identity"
   compound,"%Episteme.Term.Compound{name: atom(), args: [term]}","deconstruct/1 -> {name,args}; reconstruct/2 rebuilds"
   list,"[h | t] using native Elixir lists","proper AND improper lists both representable natively; [] is the empty-list atom, same as Prolog"
@@ -202,7 +203,7 @@ terms[6]{prolog_term,elixir_representation,notes}:
 
 ```toon
 term_deferred_decisions[1]{topic,options,status}:
-  string_type,"code-list (ISO default) vs real Elixir binary-backed string type",deferred to milestone v0.4; ISO default (code-list) NOT chosen as final, just not yet decided
+  string_type,"code-list (ISO default) vs real Elixir binary-backed string type","decided 2026-08-04: real Elixir binary-backed string type -- see string_type_decision in decisions_log"
 ```
 
 ## 5. Naming convention rule
@@ -221,7 +222,7 @@ roadmap tag it ships in (§7). `classic_name` is always the ISO/canonical
 name; `modern_alias` is empty when rule_3 applies (name already clear).
 
 ```toon
-predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status,notes}:
+predicate_catalog[133]{category,classic_name,arity,modern_alias,milestone,status,notes}:
   control,true,0,,v0.1,implemented,
   control,fail,0,,v0.1,implemented,"false/0 is a standard alias, both classic"
   control,",",2,,v0.1,implemented,"conjunction; maps to Backtrack.conjunction/2"
@@ -233,17 +234,17 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
   control,call,2,,v0.1,implemented,"call/N up to at least 8, partial application"
   control,once,1,,v0.1,implemented,"this one genuinely IS Backtrack.once/1 directly"
   control,forall,2,,v0.2,implemented,"expressible via \\+ (Cond, \\+ Action); shipped ahead of schedule as part of episteme 0.1.0 -- see episteme_ahead_of_schedule"
-  control,ignore,1,,v0.2,not_started,
+  control,ignore,1,,v0.2,implemented,"see episteme_v0_2_completed; like once/1 but never fails"
   unify,=,2,,v0.1,implemented,"Backtrack.Bindings.unify/4"
   unify,\=,2,,v0.1,implemented,
-  unify,unify_with_occurs_check,2,,v0.2,not_started,"Backtrack.Bindings.unify_occurs_check/4 already exists in ichor_runtime -- just not wired up as a callable goal yet"
+  unify,unify_with_occurs_check,2,,v0.2,implemented,"Backtrack.Bindings.unify_occurs_check/4 already existed in ichor_runtime; now wired up as a callable goal -- see episteme_v0_2_completed"
   compare,==,2,,v0.1,implemented,structural equality
   compare,\==,2,not_equal,v0.1,implemented,
-  compare,@<,2,,v0.2,not_started,standard order of terms
-  compare,@>,2,,v0.2,not_started,standard order of terms
-  compare,@=<,2,,v0.2,not_started,standard order of terms
-  compare,@>=,2,,v0.2,not_started,standard order of terms
-  compare,compare,3,,v0.2,not_started,standard order of terms
+  compare,@<,2,,v0.2,implemented,"standard order of terms -- see episteme_v0_2_completed"
+  compare,@>,2,,v0.2,implemented,"standard order of terms -- see episteme_v0_2_completed"
+  compare,@=<,2,,v0.2,implemented,"standard order of terms -- see episteme_v0_2_completed"
+  compare,@>=,2,,v0.2,implemented,"standard order of terms -- see episteme_v0_2_completed"
+  compare,compare,3,,v0.2,implemented,"standard order of terms -- see episteme_v0_2_completed"
   type_check,var,1,,v0.1,implemented,
   type_check,nonvar,1,,v0.1,implemented,
   type_check,atom,1,,v0.1,implemented,
@@ -254,10 +255,10 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
   type_check,compound,1,,v0.1,implemented,
   type_check,callable,1,,v0.1,implemented,
   type_check,is_list,1,,v0.1,implemented,
-  type_check,ground,1,,v0.2,not_started,"needs recursive var-freedom check"
-  term_inspect,functor,3,,v0.2,not_started,
-  term_inspect,arg,3,,v0.2,not_started,
-  term_inspect,=..,2,univ,v0.2,not_started,
+  type_check,ground,1,,v0.2,implemented,"recursive var-freedom check -- see episteme_v0_2_completed"
+  term_inspect,functor,3,,v0.2,implemented,"see episteme_v0_2_completed"
+  term_inspect,arg,3,,v0.2,implemented,"see episteme_v0_2_completed"
+  term_inspect,=..,2,univ,v0.2,implemented,"see episteme_v0_2_completed"
   term_inspect,copy_term,2,,v0.1,implemented,"internal machinery too: needed for clause instantiation on every resolution step, expose as predicate in v0.1"
   arithmetic,is,2,,v0.1,implemented,
   arithmetic,+,2,,v0.1,implemented,"as arithmetic functor inside is/2 expressions"
@@ -275,11 +276,11 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
   arithmetic,**,2,,v0.1,implemented,
   arithmetic,^,2,,v0.1,implemented,
   arithmetic,between,3,,v0.1,implemented,"not ISO -- de facto library predicate (SWI etc). Not originally scoped in this catalog at all; shipped as part of episteme 0.1.0's initial extraction and exposed via Aletheia automatically, since it's a plain atom functor with nothing for ControlSyntax to translate -- see episteme_ahead_of_schedule"
-  arithmetic,sin,1,,v0.2,not_started,
-  arithmetic,cos,1,,v0.2,not_started,
-  arithmetic,tan,1,,v0.2,not_started,
-  arithmetic,exp,1,,v0.2,not_started,
-  arithmetic,log,1,,v0.2,not_started,
+  arithmetic,sin,1,,v0.2,implemented,"radians -- see episteme_v0_2_completed"
+  arithmetic,cos,1,,v0.2,implemented,"radians -- see episteme_v0_2_completed"
+  arithmetic,tan,1,,v0.2,implemented,"radians -- see episteme_v0_2_completed"
+  arithmetic,exp,1,,v0.2,implemented,"e^X -- see episteme_v0_2_completed"
+  arithmetic,log,1,,v0.2,implemented,"natural log -- see episteme_v0_2_completed"
   arith_compare,=:=,2,,v0.1,implemented,
   arith_compare,=\=,2,,v0.1,implemented,
   arith_compare,<,2,,v0.1,implemented,
@@ -291,19 +292,19 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
   exception,type_error,2,,v0.1,implemented,"standard error-term constructor helper"
   exception,domain_error,2,,v0.1,implemented,"standard error-term constructor helper"
   exception,instantiation_error,1,,v0.1,implemented,"standard error-term constructor helper"
-  exception,existence_error,2,,v0.2,partial,"standard error-term constructor helper; already thrown internally on an undefined-predicate call (Episteme.Engine.solve_user_predicate/2), not yet exposed as a directly-callable goal the way type_error/2 and friends are"
+  exception,existence_error,2,,v0.2,implemented,"standard error-term constructor helper; thrown internally on an undefined-predicate call (Episteme.Engine.solve_user_predicate/2) and now also exposed as a directly-callable goal, same as type_error/2 and friends -- see episteme_v0_2_completed"
   operator,op,3,,v0.1,implemented,"feeds Ichor.Toolkit.Pratt table directly"
-  database,dynamic,1,,v0.2,not_started,directive
+  database,dynamic,1,,v0.2,implemented,"directive -- see episteme_v0_2_completed"
   database,assert,1,assertz_alias,v0.2,implemented,"classic alias of assertz/1; shipped ahead of schedule -- see episteme_ahead_of_schedule"
   database,asserta,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
   database,assertz,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
   database,retract,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
   database,retractall,1,,v0.2,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
-  database,abolish,1,,v0.2,not_started,
-  database,clause,2,,v0.2,not_started,"Episteme.Database.clauses_for/3 exists as an internal Elixir API; not yet exposed as a callable goal"
+  database,abolish,1,,v0.2,implemented,"see episteme_v0_2_completed"
+  database,clause,2,,v0.2,implemented,"now exposed as a callable goal, on top of the existing internal Episteme.Database.clauses_for/3 -- see episteme_v0_2_completed"
   aggregate,findall,3,,v0.3,implemented,"shipped ahead of schedule -- see episteme_ahead_of_schedule"
-  aggregate,bagof,3,,v0.3,not_started,
-  aggregate,setof,3,,v0.3,not_started,
+  aggregate,bagof,3,,v0.3,implemented,"groups by Goal's own free variables (not in Template, not Var^Goal-quantified); fails outright on no solutions, unlike findall/3 -- see episteme_v0_3_completed"
+  aggregate,setof,3,,v0.3,implemented,"bagof/3 plus per-group sort+dedup and group ordering by standard order of terms -- see episteme_v0_3_completed"
   aggregate,aggregate_all,3,,later,not_started,
   list,length,2,,v0.1,implemented,
   list,append,3,,v0.1,implemented,
@@ -312,40 +313,49 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
   list,nth0,3,,v0.1,implemented,
   list,nth1,3,,v0.1,implemented,
   list,last,2,,v0.1,implemented,
-  list,msort,2,,v0.2,not_started,"needs standard order of terms"
-  list,sort,2,,v0.2,not_started,dedups + sorts by standard order
+  list,msort,2,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,sort,2,,v0.2,implemented,"dedups + sorts by standard order -- see episteme_v0_2_completed"
   list,sort,4,,later,not_started,key/order variants
-  list,permutation,2,,v0.2,not_started,
-  list,sum_list,2,sumlist_alias,v0.2,not_started,
-  list,max_list,2,,v0.2,not_started,
-  list,min_list,2,,v0.2,not_started,
-  list,list_to_set,2,,v0.2,not_started,
-  list,exclude,3,,v0.2,not_started,
-  list,include,3,,v0.2,not_started,
-  list,foldl,4,,v0.2,not_started,"foldl/4..6 family for 1-3 list args"
-  list,maplist,2,,v0.2,not_started,"maplist/2..6 family"
-  atom_string,atom_codes,2,,v0.4,not_started,
-  atom_string,atom_chars,2,,v0.4,not_started,
-  atom_string,atom_length,2,,v0.4,not_started,
-  atom_string,atom_concat,3,,v0.4,not_started,
-  atom_string,char_code,2,,v0.4,not_started,
-  atom_string,number_codes,2,,v0.4,not_started,
-  atom_string,number_chars,2,,v0.4,not_started,
-  atom_string,upcase_atom,2,,v0.4,not_started,
-  atom_string,downcase_atom,2,,v0.4,not_started,
-  atom_string,sub_atom,5,,v0.4,not_started,
-  atom_string,split_string,4,,v0.4,not_started,"needs real string type decision, see term_deferred_decisions"
-  atom_string,atomic_list_concat,2,,v0.4,not_started,"rule_2 alias candidate: opaque name"
-  atom_string,atomic_list_concat,3,,v0.4,not_started,"rule_2 alias candidate: opaque name"
+  list,permutation,2,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,sum_list,2,sumlist_alias,v0.2,implemented,"see episteme_v0_2_completed"
+  list,max_list,2,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,min_list,2,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,list_to_set,2,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,exclude,3,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,include,3,,v0.2,implemented,"see episteme_v0_2_completed"
+  list,foldl,4,,v0.2,implemented,"foldl/4..6 family for 1-3 list args -- see episteme_v0_2_completed"
+  list,maplist,2,,v0.2,implemented,"maplist/2..6 family -- see episteme_v0_2_completed"
+  atom_string,atom_codes,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,atom_chars,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,atom_length,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,atom_concat,3,,v0.4,implemented,"enumerates every split on backtracking when only the whole is bound -- see episteme_v0_4_atom_string_family"
+  atom_string,char_code,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,number_codes,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,number_chars,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,upcase_atom,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,downcase_atom,2,,v0.4,implemented,"see episteme_v0_4_atom_string_family"
+  atom_string,sub_atom,5,,v0.4,implemented,"enumerates every decomposition on backtracking; Sub always an atom -- see episteme_v0_4_atom_string_family"
+  atom_string,split_string,4,,v0.4,implemented,"real string type now decided (see string_type_decision) and implemented -- always produces strings, see episteme_v0_4_atom_string_family"
+  atom_string,atomic_list_concat,2,,v0.4,implemented,"rule_2 alias candidate: opaque name -- not yet given a modern alias, see episteme_v0_4_atom_string_family"
+  atom_string,atomic_list_concat,3,,v0.4,implemented,"rule_2 alias candidate: opaque name -- not yet given a modern alias; splits (not just joins) when the list is unbound, see episteme_v0_4_atom_string_family"
+  atom_string,atom_string,2,,v0.4,implemented,"not in the original catalog -- added alongside the atom_* family once the string type was decided, SWI-style atom<->string conversion; see episteme_v0_4_atom_string_family"
+  atom_string,string_to_atom,2,,v0.4,implemented,"not in the original catalog -- atom_string/2 with swapped argument order, see episteme_v0_4_atom_string_family"
+  atom_string,string_concat,3,,v0.4,implemented,"not in the original catalog -- string-producing counterpart of atom_concat/3, see episteme_v0_4_atom_string_family"
+  atom_string,string_chars,2,,v0.4,implemented,"not in the original catalog -- string-producing counterpart of atom_chars/2 (single-char strings, not atoms), see episteme_v0_4_atom_string_family"
+  atom_string,string_codes,2,,v0.4,implemented,"not in the original catalog -- string-producing counterpart of atom_codes/2, see episteme_v0_4_atom_string_family"
+  atom_string,string_length,2,,v0.4,implemented,"not in the original catalog -- string-producing counterpart of atom_length/2, see episteme_v0_4_atom_string_family"
+  atom_string,number_string,2,,v0.4,implemented,"not in the original catalog -- string-producing counterpart of atom_string/2 for numbers, see episteme_v0_4_atom_string_family"
+  type_check,string,1,,v0.4,implemented,"not in the original catalog -- added alongside the new string term class; true only for a real string, never for an atom -- see episteme_v0_4_atom_string_family"
   io,write,1,,v0.1,implemented,"minimal REPL output need"
   io,writeln,1,,v0.1,implemented,
   io,print,1,write_alias,v0.1,implemented,"rule_2: readable alias of write/1"
   io,nl,0,,v0.1,implemented,
-  io,format,2,,v0.4,not_started,
+  io,format,2,,v0.4,implemented,"practical directive subset (~w/~p/~q/~a/~d/~s/~i/~n/~~, no column/radix directives, no numeric-prefixed ~Nd) -- see episteme_v0_4_format"
+  io,format,1,,v0.4,implemented,"not in the original catalog -- format/2 with Args = [], added alongside it since it's nearly free -- see episteme_v0_4_format"
   io,read_term,2,,later,not_started,
-  dcg,-->,2,dcg_translate,v0.5,not_started,"grammar-rule clause translation at load time"
-  dcg,phrase,2,,v0.5,not_started,
-  dcg,phrase,3,,v0.5,not_started,
+  dcg,-->,2,dcg_translate,v0.5,implemented,"clause translation via Episteme.Dcg.translate_rule/2, applied by Database.consult_forms/2's {:dcg, head, body} form and by assert/1 for a -->/2-shaped clause term (not load-time-only, also dynamic); dcg_translate/2 exposed as a directly-callable goal for introspection -- see episteme_v0_5_dcg"
+  dcg,phrase,2,,v0.5,implemented,"cut-opaque, like call/N -- see episteme_v0_5_dcg"
+  dcg,phrase,3,,v0.5,implemented,"see episteme_v0_5_dcg"
 ```
 
 ## 7. Roadmap
@@ -353,10 +363,10 @@ predicate_catalog[124]{category,classic_name,arity,modern_alias,milestone,status
 ```toon
 roadmap[6]{version,theme,status}:
   v0.1,"minimal true core: reader (lexer+Pratt), Term IR, unification, SLD-resolution, cut (real, not once/1-only), core control, is/2 arithmetic, exceptions, op/3, minimal I/O, REPL/consult",done
-  v0.2,"dynamic database (assert/retract family), term inspection (functor/arg/univ), standard order of terms, ground/1, more list predicates, forall/ignore -- partially done ahead of schedule: assert/asserta/assertz/retract/retractall/forall all shipped as part of episteme 0.1.0's initial extraction and confirmed working end-to-end through Aletheia already (see episteme_ahead_of_schedule, decisions_log); dynamic/1, abolish/1, clause/2, term inspection, standard order of terms, ground/1, and the v0.2 list-predicate family are still genuinely not started",partial
-  v0.3,"aggregation: findall/bagof/setof -- findall/3 already shipped ahead of schedule alongside the v0.2 items above (see episteme_ahead_of_schedule); bagof/3 and setof/3 still not started",partial
-  v0.4,"real string type decision + atom/string predicate family + format/2",not_started
-  v0.5,"DCG (-->/phrase)",not_started
+  v0.2,"dynamic database (assert/retract family), term inspection (functor/arg/univ), standard order of terms, ground/1, more list predicates, forall/ignore -- every predicate_catalog row tagged v0.2 is now status=implemented in episteme's own repository (develop branch), as of episteme_v0_2_completed; NOT yet consumable via Aletheia end-to-end, though -- aletheia's mix.exs still pins {:episteme, \"~> 0.1\"}, resolving to the published 0.1.0 Hex release, which predates every v0.2 predicate. A new episteme Hex release (0.2.0) plus a version bump here are needed before v0.2 is actually usable from `.alp` source, the same gap episteme_ahead_of_schedule's own items had before episteme_hex_release closed it",done_in_episteme_pending_hex_release
+  v0.3,"aggregation: findall/bagof/setof -- findall/3 already shipped ahead of schedule alongside the v0.2 items above (see episteme_ahead_of_schedule); bagof/3 and setof/3 now implemented too (see episteme_v0_3_completed), so every v0.3-tagged predicate_catalog row is status=implemented in episteme's own repository (develop branch) -- same not-yet-consumable-via-Aletheia caveat as v0.2 (episteme_v0_2_completed): aletheia's mix.exs still pins {:episteme, \"~> 0.1\"}",done_in_episteme_pending_hex_release
+  v0.4,"real string type decision + atom/string predicate family + format/2 -- string type decided and implemented (real Elixir binary, see string_type_decision), the entire atom/string predicate family implemented (including several string_* predicates added beyond the original catalog once the type was decided, see episteme_v0_4_atom_string_family), and format/1,2 (see episteme_v0_4_format) -- every v0.4-tagged predicate_catalog row is now status=implemented in episteme's own repository (develop branch). Same not-yet-consumable-via-Aletheia caveat as v0.2/v0.3: aletheia's mix.exs still pins {:episteme, \"~> 0.1\"}",done_in_episteme_pending_hex_release
+  v0.5,"DCG (-->/phrase) -- implemented in episteme's own repository (develop branch): Episteme.Dcg translates a Head --> Body rule into an ordinary clause threading an S0/S difference-list pair through every nonterminal call (practical subset -- terminals, {Goal}, cut, and/or/if_then/if_then_else/not, a bare nonterminal, a variable body -- no call//N pushback); phrase/2,3 runs a DCG body as a goal, dcg_translate/2 is the readable --> alias, and both Database.consult_forms/2's {:dcg, head, body} form and a -->/2-shaped assert/1 translate-and-store (see episteme_v0_5_dcg). Every v0.5-tagged predicate_catalog row is now status=implemented. Same not-yet-consumable-via-Aletheia caveat as v0.2-v0.4: aletheia's mix.exs still pins {:episteme, \"~> 0.1\"}",done_in_episteme_pending_hex_release
   later,"module system, tabling, CLP(FD) — explicitly unscheduled, need-driven only",not_started
 ```
 
@@ -372,7 +382,7 @@ interop:
 ## 9. Decisions log
 
 ```toon
-decisions_log[19]{date,decision,choice,status}:
+decisions_log[25]{date,decision,choice,status}:
   2026-07-27,embedding_model,"classic Prolog syntax via reader (not Elixir-native macros)",final
   2026-07-27,engine_strategy,"tree-walking / lazy-search interpreter (not WAM bytecode compilation)",final_for_v0.1-v0.5
   2026-07-27,initial_scope,"minimal true core first, staged expansion need-first (not full-ISO-upfront)",final
@@ -392,6 +402,12 @@ decisions_log[19]{date,decision,choice,status}:
   2026-08-04,episteme_hex_release,"episteme published to Hex as episteme 0.1.0 (own repository, github.com/joetjen/episteme, independent release cadence from aletheia). aletheia's mix.exs dependency simplified from {:episteme, path: \"../episteme\"} to plain {:episteme, \"~> 0.1\"} -- no sibling checkout required to build aletheia anymore. Pulled in ichor_runtime ~> 0.2 and ichor ~> 0.3 transitively (episteme's own runtime dependency), both bumped here too; regenerated grammar_generated.ex against ichor 0.3's codegen (raw capture shape change, map -> ordered list -- see ichor's own CHANGELOG 0.3.0) to stay current",final
   2026-08-04,episteme_control_syntax_translation,"episteme 0.1.0's own first Hex release renamed every ISO-punctuation control construct/comparison operator it dispatches on to a plain-English name (,/2 -> and/2, ;/2 -> or/2, ! -> cut, \\+/1 -> not/1, (Cond->Then;Else) -> if_then_else/3 (explicit, replacing an old implicit ;-wrapping-> pattern match the engine no longer does), (Cond->Then) -> if_then/2, =/2 -> unify/2, \\=/2 -> not_unify/2, ==/2 -> equal/2, \\==/2 -> not_equal/2, =:=/2 -> numeric_equal/2, =\\=/2 -> numeric_not_equal/2, =</2 -> less_or_equal/2, >=/2 -> greater_or_equal/2; +,-,*,/,<,> unchanged, never punctuation-as-control to begin with) -- Episteme has no reader of its own for ISO punctuation to be conventional syntax against. Aletheia.Reader itself keeps producing ISO-punctuation-named terms unchanged (reader_test.exs asserts this directly, and it is the correct, syntax-faithful reading of `.alp` source); the new Aletheia.Reader.ControlSyntax.to_goal/1 bridges the gap, applied by lib/aletheia.ex to rule bodies (before Database.consult_forms/2) and query/query_lazy goals (after parse_goal/1), never to fact terms or rule heads (plain data, matched structurally, never dispatched as goals). Implemented as an Ichor.Toolkit.TermWalk.rewrite/3 pass: transform is applied top-down before TermWalk's own recursion into the (possibly-just-returned) compound's args, so the if-then-else special case can pattern-match the still-untranslated ;-wrapping-> shape directly at the parent node and emit if_then_else/3 in one step, while every other node falls through to a plain {name,arity} -> new_name table lookup",final
   2026-08-05,episteme_ahead_of_schedule,"audit against predicate_catalog found episteme 0.1.0's initial extraction (see episteme_split) shipped several predicates beyond aletheia's own originally-scoped v0.1 catalog: assert/1, asserta/1, assertz/1, retract/1, retractall/1, forall/2, and findall/3 (all catalog-tagged v0.2/v0.3, roadmap-tagged not_started), plus between/3 (not in the catalog at all). None needed any Aletheia-side work to reach `.alp` callers -- none involve ISO punctuation, so Aletheia.Reader.ControlSyntax never touches them; a plain atom-functor goal like assert(foo(1)) already flows untouched from the reader straight through to Episteme.Engine. Verified end-to-end via Aletheia.query/2 (assert+retract, assertz+findall, forall, between all producing correct solutions) before updating this doc. predicate_catalog retrofitted with a status column (implemented/partial/not_started) to make this distinction from milestone (the intended scope grouping) explicit going forward -- see `0`'s own on_milestone_completion rule, which already presumed this column existed. Also found and fixed three stale TOON row-count headers unrelated to this specific gap: predicate_catalog[97] (actually 123 rows before this change), roadmap[7] (actually 6), decisions_log[16] (actually 18, from two earlier entries added without updating the header)",final
+  2026-08-04,episteme_v0_2_completed,"closed out the entire v0.2 predicate_catalog slice in episteme's own repository, across three feature branches merged to episteme's develop via --no-ff: ignore/1 and unify_with_occurs_check/2 (feature/ignore-and-occurs-check); existence_error/2 exposed as a directly-callable goal alongside type_error/2/domain_error/2/instantiation_error/1 (feature/existence-error-goal); and the five remaining evaluable functors sin/1, cos/1, tan/1, exp/1, log/1 (feature/trig-and-log-functors, found missing only after the first two branches were already merged and this doc's own catalog was re-checked row by row) -- the six v0.2 rows that were still not_started/partial. Every other v0.2 row (standard order of terms, term inspection, dynamic/abolish/clause, the full list-predicate family) was already implemented on episteme's develop branch but this doc had not been updated to say so. All three changes tested (episteme's own mix precommit: format/credo --strict/sobelow/196 tests/dialyzer, all clean) -- not yet pushed to episteme's origin, and not yet released to Hex. aletheia's own mix.exs dependency is unchanged ({:episteme, \"~> 0.1\"}, still resolving to the published 0.1.0 release) -- see the roadmap's own v0.2 entry for why that means v0.2 is not yet actually usable through Aletheia.query/2 despite being catalog-complete in episteme",final
+  2026-08-04,episteme_v0_3_completed,"added bagof/3 and setof/3 to episteme (feature/bagof-setof, merged to episteme's develop via --no-ff), closing out v0.3 -- both fail outright (not List = []) on no solutions, unlike findall/3, and group solutions by Goal's own free variables (mentioned in Goal, not in Template, not existentially quantified via Var^Goal), backtracking one solution per distinct group; setof/3 additionally sorts/dedups each group and orders the groups themselves by standard order of terms. Built on two new Episteme.Term functions -- term_variables/1 (real Prolog's term_variables/2, not itself exposed as a goal) and sort_by_order/1/sort_unique/1, the latter two also now shared by msort/2/sort/2 (replacing what had been private duplicate logic in Episteme.Builtins.Lists). Tested (mix precommit clean, 202 tests) and merged to episteme's develop, same not-yet-pushed/not-yet-released status as episteme_v0_2_completed -- v0.3 is catalog-complete in episteme but, like v0.2, not yet consumable via Aletheia.query/2 until a new episteme Hex release and an aletheia dependency bump",final
+  2026-08-04,string_type_decision,"resolved term_deferred_decisions' string_type row: a real Elixir binary-backed string type (SWI-Prolog-style, not ISO's code-list default) -- a genuinely new atomic term class, not a list of codes. User's explicit call, made when starting v0.4: modern ergonomics/performance over strict ISO purity, consistent with this project's own stated philosophy (2 Philosophy: 'modernize names only' already accepts diverging from raw ISO where it clearly helps; a real string type is the same kind of call applied to term representation rather than naming). Implemented as plain native Elixir binaries (String.t()) with NO wrapper struct -- exactly the same pattern atoms/integers/floats already use (raw host-language values, not a dedicated Episteme.Term struct) -- unify's existing 'anything else compares via plain ==/2' fallback (compound?/1 already false for a binary by the existing catch-all clause) makes unify/not_unify/equal/not_equal all work correctly with zero Ichor.Backtrack.Bindings changes. Two places in Episteme.Term genuinely needed new code: standard order of terms (term_class/1 needed an explicit string case -- without it every binary would hit the compound catch-all and crash decompose/1) placed between atom and compound (Var < Number < Atom < String < Compound, matching SWI's own convention), and to_text/1 (double-quoted rendering). See 4's own terms table for the row.",final
+  2026-08-04,episteme_v0_4_atom_string_family,"implemented the entire v0.4 atom_string-tagged predicate_catalog slice in episteme's own repository (feature/string-type, merged to episteme's develop via --no-ff), in a new Episteme.Builtins.Strings module: atom_codes/2, atom_chars/2, atom_length/2, atom_concat/3, sub_atom/5, char_code/2, number_codes/2, number_chars/2, upcase_atom/2, downcase_atom/2, atomic_list_concat/2,3 (the original catalog rows) plus atom_string/2, string_to_atom/2, string_concat/3, string_chars/2, string_codes/2, string_length/2, number_string/2 (SWI-style real-string counterparts, added beyond the original catalog once string_type_decision settled what they'd even produce) and a new string/1 type check (atomic/1 now also true for strings). atom_concat/3, string_concat/3, and sub_atom/5 all enumerate every matching decomposition on backtracking when only one side is bound, via a shared unify_pairs/2 helper -- the same 'generate every candidate, let unify filter it' shape append/3 already uses over lists, rather than separate deterministic/nondeterministic code paths. Every String.to_atom/1 call site (a dozen, across this one module) routes through one private to_prolog_atom/1 carrying a single sobelow_skip justification (the same accepted atom-table-exhaustion risk already documented for the reader) instead of the low-confidence DOS.StringToAtom finding repeated a dozen times. Tested (mix precommit clean: format/credo --strict/sobelow/dialyzer, 236 tests) and merged to episteme's develop -- not yet pushed to episteme's origin, not yet released to Hex, so not yet consumable via Aletheia.query/2, same as episteme_v0_2_completed/episteme_v0_3_completed. Only format/2 remains not_started for v0.4 (see roadmap)",final
+  2026-08-04,episteme_v0_4_format,"implemented format/1,2 in episteme's own repository (feature/format, merged to episteme's develop via --no-ff), closing out v0.4's predicate_catalog entirely -- a practical directive subset (~w/~p/~q all Term.to_text/1, since there's no operator-aware or quoted writer yet to tell them apart with; ~a, ~d, ~s, ~i, ~n, ~~), deliberately not ISO/SWI's full one (no column/radix directives, no numeric-prefixed ~Nd). format/1 (Args = []) added alongside format/2 despite not being in the original catalog, the same 'cheap enough to add once you're already there' judgment call as several v0.1-v0.2 predicates before it. A single non-list Args is treated as [Args], matching SWI's own leniency. Lives in Episteme.Builtins.Io, reusing Episteme.Builtins.Strings.require_atomic_text/2 for the format string itself. Tested (mix precommit clean, 246 tests) and merged to episteme's develop -- same not-yet-pushed/not-yet-released status as episteme_v0_2_completed/episteme_v0_3_completed/episteme_v0_4_atom_string_family. Every v0.4-tagged predicate_catalog row is now status=implemented",final
+  2026-08-05,episteme_v0_5_dcg,"implemented DCG (Definite Clause Grammar) support in episteme's own repository (feature/dcg, merged to episteme's develop via --no-ff), closing out v0.5 -- the last roadmap-numbered milestone (later is need-driven only, see roadmap). New Episteme.Dcg module (translate_rule/2, translate_body/3) translates a Head --> Body rule into an ordinary clause, threading an incoming/outgoing difference-list pair (S0/S) through every nonterminal call -- a practical subset of real DCG translation (terminals, {Goal} via ISO's own '{}'/1 embedded-goal shape, cut, and/2, or/2, if_then/2, if_then_else/3, not/1, a bare nonterminal, and a variable body translated to phrase(Var, S0, S)), deliberately not all of it (no call//N pushback -- parameterized higher-order nonterminals, not yet needed). phrase/2,3 (Episteme.Engine) runs a DCG body as an ordinary goal, cut-opaque like call/N; dcg_translate/2 is the readable --> alias (predicate_catalog's own modern_alias column already named it) for introspection, unifying its second argument with the translated clause without storing it; a new {:dcg, head, body} Database.consult_forms/2 form and a -->/2-shaped clause term passed to assert/1 (same as :-/2 is already special-cased in store_clause/3) both translate and store. Tested (mix precommit clean: format/credo --strict/sobelow/dialyzer, 267 tests) and merged to episteme's develop -- same not-yet-pushed/not-yet-released status as every v0.2-v0.4 entry before it. Every v0.5-tagged predicate_catalog row is now status=implemented",final
 ```
 
 ## 10. Glossary (Prolog terms, for an agent without Prolog background)
