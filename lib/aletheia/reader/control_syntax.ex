@@ -1,7 +1,7 @@
 defmodule Aletheia.Reader.ControlSyntax do
   @moduledoc """
   Translates a parsed goal from `Aletheia.Reader`'s own ISO-punctuation
-  term shape (`','/2`, `';'/2`, `'->'/2`, `!`, `'='/2`, ...) into the
+  term shape (`,`/2, `;`/2, `->`/2, `!`, `=`/2, ...) into the
   plain-English control-construct/comparison names `Episteme.Engine`
   dispatches on (`and/2`, `or/2`, `if_then/2`, `cut`, `unify/2`, ...) --
   see `episteme`'s own `CHANGELOG.md` under its `0.1.0` release: as of
@@ -41,7 +41,7 @@ defmodule Aletheia.Reader.ControlSyntax do
   @doc """
   Rewrites `goal` from ISO-punctuation control/comparison names to
   Episteme's own. Recognizes the ISO `(Cond -> Then ; Else)` nested
-  pattern (`';'/2` wrapping `'->'/2` as its first argument) and rewrites
+  pattern (`;`/2 wrapping `->`/2 as its first argument) and rewrites
   it to the explicit `if_then_else/3` Episteme now requires -- a plain
   per-node translation would instead produce `or(if_then(Cond, Then),
   Else)`, which wrongly retries `Else` if `Cond` succeeds but `Then`
