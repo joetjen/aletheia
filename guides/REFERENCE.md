@@ -2,8 +2,7 @@
 
 Every predicate implemented and reachable from `.alp` source today,
 with its signature, semantics, and enough of an example to use it
-correctly. As of `DESIGN.md`'s `aletheia_episteme_path_dependency_interim`
-decision, this covers the *entire* v0.1-v0.5 roadmap — the whole
+correctly. This covers the *entire* v0.1-v0.5 roadmap — the whole
 numbered milestone list is done. Two genuine, deliberate gaps remain,
 both called out where relevant below: `=../2` (`univ/2` works, but the
 ISO punctuation form can't be tokenized by this reader's own simplified
@@ -26,10 +25,9 @@ Classic Prolog surface syntax, read by `Aletheia.Reader`:
   unifies or compares equal (`==/2`) with a float holding the same
   value, matching ISO.
 - **Strings**: double-quoted (`"hello"`) — a real, native Elixir binary
-  under the hood (see `DESIGN.md`'s `string_type_decision`), a genuinely
-  distinct term class from atoms, never a code list. No escape
-  processing (a literal `"` can't appear inside one at all), same
-  simplification quoted atoms already have.
+  under the hood, a genuinely distinct term class from atoms, never a
+  code list. No escape processing (a literal `"` can't appear inside
+  one at all), same simplification quoted atoms already have.
 - **Lists**: `[]` (empty), `[1, 2, 3]` (proper), `[H|T]` (cons, `T` can
   be a variable or another list) — backed by native Elixir lists,
   decomposing as ISO's own `.`/2 cons functor so unification recurses

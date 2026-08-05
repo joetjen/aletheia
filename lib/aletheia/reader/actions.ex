@@ -81,9 +81,8 @@ defmodule Aletheia.Reader.Actions do
   def handle_token(:QATOM, text, _ctx),
     do: {:ok, text |> String.slice(1..-2//1) |> to_prolog_atom()}
 
-  # A real string (see DESIGN.md's `string_type_decision`) -- a plain
-  # Elixir binary, no wrapper struct, same as `Episteme.Term`'s own
-  # representation for one.
+  # A real string -- a plain Elixir binary, no wrapper struct, same as
+  # `Episteme.Term`'s own representation for one.
   def handle_token(:STRING, text, _ctx), do: {:ok, String.slice(text, 1..-2//1)}
 
   def handle_token(:BANG, text, _ctx), do: {:ok, to_prolog_atom(text)}
@@ -94,12 +93,12 @@ defmodule Aletheia.Reader.Actions do
   # Every atom this reader ever produces (plain atoms, quoted atoms,
   # `!`/`;` as atoms, operator symbols) comes from source text via one
   # of the `handle_token/3` clauses above -- the BEAM atom table isn't
-  # garbage collected, so this is DESIGN.md's own already-documented
-  # `atom-table-exhaustion` risk (accepted for v0.1-v0.5, a library
-  # embedded in trusted programs; revisit before any untrusted/generated-
-  # source use case). Routing every `String.to_atom/1` call through here
-  # instead of five separate call sites keeps that justification in one
-  # place instead of a skip comment repeated five times over.
+  # garbage collected, so this is an accepted atom-table-exhaustion risk
+  # (fine for a library embedded in trusted programs; revisit before any
+  # untrusted/generated-source use case). Routing every
+  # `String.to_atom/1` call through here instead of five separate call
+  # sites keeps that justification in one place instead of a skip
+  # comment repeated five times over.
   @spec to_prolog_atom(String.t()) :: atom()
   defp to_prolog_atom(text), do: String.to_atom(text)
 

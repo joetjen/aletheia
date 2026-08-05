@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   shipped**, closing out the entire numbered roadmap end to end through
   `.alp` source:
   - **Double-quoted string literals** (`"hello"`) — a real Elixir
-    binary, matching `DESIGN.md`'s `string_type_decision`, no escape
+    binary, a genuinely distinct term class from atoms, no escape
     processing (same simplification quoted atoms already have).
   - **`{Goal}`** (ISO's own `{}`/1 term shape) — ordinary syntax
     anywhere a term can appear.
@@ -52,8 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     end-of-clause).
   - `mix.exs`'s `episteme` dependency switched to a **path** dependency
     (`{:episteme, path: "../episteme"}`), interim until episteme's own
-    v0.2-v0.5 work is released to Hex — see `DESIGN.md`'s
-    `aletheia_episteme_path_dependency_interim`.
+    v0.2-v0.5 work is released to Hex.
   - Fixed a pre-existing gap found along the way: `mix precommit`'s
     `sobelow` step ran without `--skip`, silently ignoring every
     `#sobelow_skip` comment in the codebase (episteme's own equivalent
@@ -69,8 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Docs are now cross-referenced from the project config**: `mix.exs`
   sets `homepage_url`/`canonical` (docs) and a `"Docs"` package link
   pointing at the GitHub Pages site
-  (`https://joetjen.github.io/aletheia/`), and the README/`DESIGN.md`
-  reference it too. The site itself is built by
+  (`https://joetjen.github.io/aletheia/`), and the README references
+  it too. The site itself is built by
   `.github/workflows/docs.yml` on every push to `main`; it won't
   actually be live until aletheia's first release reaches `main`.
 - **A handful of v0.2/v0.3 predicates already work, ahead of schedule**:
@@ -84,8 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never needed to touch them). Previously undocumented and untested at
   this level; now covered in
   [`guides/REFERENCE.md`](guides/REFERENCE.md#database) and
-  `test/aletheia/end_to_end_test.exs`. See `DESIGN.md`'s
-  `episteme_ahead_of_schedule` decisions_log entry.
+  `test/aletheia/end_to_end_test.exs`.
 - **v0.1 milestone, complete**: reader, term representation,
   unification, SLD-resolution, a genuinely clause-scoped cut, core
   control constructs, `is/2` arithmetic, exceptions, a runtime-mutable
@@ -136,9 +134,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Aletheia.consult/1`, `consult_string/2`, `query/2`, `query_once/2`,
   `query_lazy/2`, and `next_solution/2` API is unchanged for existing
   callers; code that referenced `Aletheia.Term`/`Database`/`Engine`/
-  `Builtins.*` directly needs to reference `Episteme.*` instead. See
-  `DESIGN.md` §3.1 ("The `aletheia`/`episteme` split") for the
-  rationale.
+  `Builtins.*` directly needs to reference `Episteme.*` instead.
 - **`episteme` published to Hex**: the dependency on
   [`episteme`](https://hex.pm/packages/episteme) is now a plain Hex
   version requirement (`{:episteme, "~> 0.1"}`) instead of a path

@@ -69,7 +69,7 @@ defmodule Aletheia.EndToEndTest do
     end
   end
 
-  describe "predicates shipped ahead of schedule (see episteme_ahead_of_schedule, DESIGN.md decisions_log)" do
+  describe "predicates shipped ahead of schedule, as part of episteme 0.1.0's own initial extraction" do
     test "assert/asserta/assertz/retract/retractall mutate the database, visible to later queries" do
       {:ok, db} = Aletheia.consult_string("p(a). p(b).")
 
@@ -119,7 +119,7 @@ defmodule Aletheia.EndToEndTest do
     end
   end
 
-  describe "predicates from episteme's v0.2-v0.5 work (see DESIGN.md's episteme_v0_2_completed and later)" do
+  describe "predicates from episteme's v0.2-v0.5 work" do
     test "ignore/1 and unify_with_occurs_check/2" do
       {:ok, db} = Aletheia.consult_string("")
 
