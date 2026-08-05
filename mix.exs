@@ -1,7 +1,7 @@
 defmodule Aletheia.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -104,10 +104,9 @@ defmodule Aletheia.MixProject do
   end
 
   defp description do
-    "An embedded Prolog dialect for Elixir -- classic Prolog syntax (`:-`, `,`/`;`, `=`, " <>
-      "a mutable op/3 operator table) via a reader built on top of Ichor and Episteme, " <>
-      "the standalone resolution engine and clause database (unification, SLD-resolution, " <>
-      "backtracking, a real clause-scoped cut) this package is a syntax front-end for."
+    "An embedded Prolog dialect for Elixir: classic Prolog syntax (`:-`, `,`/`;`, `=`, a mutable " <>
+      "op/3 table) via a reader on Ichor, fronting Episteme -- the resolution engine and clause " <>
+      "database (unification, SLD-resolution, backtracking, a real clause-scoped cut) behind it."
   end
 
   defp package do
