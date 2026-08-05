@@ -13,7 +13,7 @@ defmodule Aletheia do
 
   Every goal parsed from source text (a rule body, or a `query/2`-style
   goal) is also rewritten from `Aletheia.Reader`'s own ISO-punctuation
-  term shape (`','/2`, `';'/2`, `!`, `'='/2`, ...) into the
+  term shape (`,`/2, `;`/2, `!`, `=`/2, ...) into the
   plain-English control-construct/comparison names `Episteme.Engine`
   dispatches on (`and/2`, `or/2`, `cut`, `unify/2`, ...) -- see
   `Aletheia.Reader.ControlSyntax`. An already-parsed term passed

@@ -32,11 +32,11 @@ Classic Prolog surface syntax, read by `Aletheia.Reader`:
   simplification quoted atoms already have.
 - **Lists**: `[]` (empty), `[1, 2, 3]` (proper), `[H|T]` (cons, `T` can
   be a variable or another list) — backed by native Elixir lists,
-  decomposing as ISO's own `'.'/2` cons functor so unification recurses
+  decomposing as ISO's own `.`/2 cons functor so unification recurses
   into them correctly.
 - **Compounds**: `functor(Arg1, Arg2, ...)`, plus operator syntax as
   sugar for the same thing — `1 + 2` *is* `+(1, 2)`.
-- **`{Goal}`**: ISO's own `'{}'/1` term shape, valid anywhere a term is
+- **`{Goal}`**: ISO's own `{}`/1 term shape, valid anywhere a term is
   — ordinary syntax, not DCG-specific, though a [DCG](#dcg) body is
   where it takes on special meaning (an embedded plain goal, no
   difference-list threading). Requires non-empty content; the bare atom

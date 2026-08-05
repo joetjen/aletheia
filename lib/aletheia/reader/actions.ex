@@ -4,7 +4,7 @@ defmodule Aletheia.Reader.Actions do
   `Episteme.Term`-shaped data -- mirrors ichor's own
   `test/support/prolog_actions.ex` worked example closely, adapted to
   build real `Episteme.Term.Var`/`Compound` structs (and native lists,
-  via the `'.'/2` encoding `Episteme.Term.deconstruct/1` implements)
+  via the `.`/2 encoding `Episteme.Term.deconstruct/1` implements)
   instead of that fixture's plain tuples.
 
   Variable names are scoped to one clause: every `X` within one clause

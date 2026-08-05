@@ -120,7 +120,8 @@ defmodule Aletheia.MixProject do
         "GitHub" => "https://github.com/joetjen/aletheia",
         "Docs" => "https://joetjen.github.io/aletheia/"
       },
-      files: ~w(lib .formatter.exs mix.exs README.md CHANGELOG.md LICENSE guides examples)
+      files:
+        ~w(lib .formatter.exs mix.exs README.md CASE_STUDY.md CHANGELOG.md LICENSE guides examples)
     ]
   end
 
@@ -138,13 +139,19 @@ defmodule Aletheia.MixProject do
     ]
   end
 
+  # Doc navigation order: README first (it's `main`), then the
+  # learn-the-library docs -- narrative walkthrough, full feature-by-
+  # feature reference, then worked programs (many small ones, then one
+  # large one) -- then the quick lookup doc, then project-process docs
+  # last. Mirrors episteme's own `extras/0` ordering rationale.
   defp extras do
     [
       "README.md",
       "guides/TUTORIAL.md",
       "guides/REFERENCE.md",
-      "guides/CHEATSHEET.md",
       "guides/EXAMPLES.md",
+      "CASE_STUDY.md",
+      "guides/CHEATSHEET.md",
       "CHANGELOG.md",
       "LICENSE"
     ]

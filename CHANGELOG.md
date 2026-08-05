@@ -9,13 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Documentation overhaul, matching the depth of sibling projects
+  (logos, episteme)**: README.md rewritten with a "Why embed a Prolog
+  dialect in Elixir?" section, a `## Components` breakdown of the
+  reader/term-IR/database/engine/builtins/REPL pipeline, CI/Docs/
+  License badges, and a full `## Documentation` index. New
+  **CASE_STUDY.md**: a single larger, real-world worked example (a
+  structured-log auditor combining a DCG grammar, real strings, the
+  dynamic database, and grouped aggregation), written as one complete
+  `.alp` program rather than Elixir term-building — the same problem
+  [Episteme's own `CASE_STUDY.md`](https://hex.pm/packages/episteme)
+  solves the other way, worth comparing side by side. Wired into
+  `mix.exs`'s `extras`/`package.files`.
 - **The reader now reaches everything episteme's v0.2-v0.5 work
   shipped**, closing out the entire numbered roadmap end to end through
   `.alp` source:
   - **Double-quoted string literals** (`"hello"`) — a real Elixir
     binary, matching `DESIGN.md`'s `string_type_decision`, no escape
     processing (same simplification quoted atoms already have).
-  - **`{Goal}`** (ISO's own `'{}'/1` term shape) — ordinary syntax
+  - **`{Goal}`** (ISO's own `{}`/1 term shape) — ordinary syntax
     anywhere a term can appear.
   - **DCG rules** (`Head --> Body.`) — a dedicated clause form (not
     parsed through the operator table), producing a `{:dcg, head,
