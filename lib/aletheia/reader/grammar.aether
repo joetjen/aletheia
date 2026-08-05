@@ -1,0 +1,104 @@
+@grammar "aletheia"
+@root clause
+@skip TRIVIA
+
+; Aletheia's real reader grammar, built the way
+; ichor's own test suite already proves out end to end
+; (test/prolog/prolog.aether + Prolog.Grammar + Prolog.Actions): real
+; Prolog-shaped syntax, `term`'s only declared dependency is `primary`,
+; everything else ordinary PEG structure, `:- op(Prec,Type,Name).`
+; directives genuinely mutate the operator table mid-file via context
+; threading through `Grammar.VM.run_sequence/4`.
+;
+; Two documented simplifications carried over from that fixture, plus
+; one more of this grammar's own:
+;
+;   - No genuine xfx (non-associative) vs yfx (left-associative)
+;     distinction -- inherited from `Ichor.Toolkit.Pratt` itself, which
+;     doesn't make that distinction either; `a is b is c`-style chains
+;     parse left-associatively instead of being rejected the way ISO
+;     would reject them outright.
+;   - Comma IS a real operator here (`xfy`, ISO priority 1000), unlike
+;     that fixture's grammar-structural comma -- this lets
+;     `p :- a, (b ; c).` compose the way real Prolog bodies do, at the
+;     cost of needing a *second* `@native` entry point (`arg_term`)
+;     that parses with a raised minimum precedence for argument/list-
+;     element position, mirroring ISO's real "an argument is a term of
+;     priority =< 999" rule via `Ichor.Toolkit.Pratt.parse/4`'s own
+;     `min_prec`.
+;   - Double-quoted string literals have no escape processing, same
+;     simplification `QATOM` (quoted atoms) already has -- a literal
+;     `"` can't appear inside one at all, not even backslash-escaped.
+;     Produces a real Elixir binary, a genuinely distinct term class
+;     from atoms, not a code list.
+;   - `{Goal}` (ISO's own `'{}'/1` term shape -- ordinary syntax
+;     anywhere, not DCG-specific, though DCG body translation is what
+;     gives it special meaning) requires non-empty content; the bare
+;     atom `{}` isn't supported.
+
+LINE_COMMENT  := "%" (!"\n" .)* "\n"?
+BLOCK_COMMENT := "/*" (!"*/" .)* "*/"
+TRIVIA        := (SPACE | LINE_COMMENT | BLOCK_COMMENT)*
+
+VAR      := [A-Z_][a-zA-Z0-9_]*
+ATOM     := [a-z][a-zA-Z0-9_]*
+QATOM    := "'" (!"'" .)* "'"
+STRING   := "\"" (!"\"" .)* "\""
+NUMBER   := DIGIT+ ("." DIGIT+)?
+BANG     := "!"
+SEMI     := ";"
+LPAREN   := "("
+RPAREN   := ")"
+LBRACKET := "["
+RBRACKET := "]"
+LBRACE   := "{"
+RBRACE   := "}"
+COMMA    := ","
+BAR      := "|"
+DOT      := "."
+RULE_OP  := ":-"
+DCG_OP   := "-->"
+OP       := [#$&*+\-/:<=>?@^~\\]+
+
+; `run_sequence/4`'s own model, exactly like `test/lisp/lisp.aether`'s
+; `@root form` (one top-level form per call, not a `*`-repeated whole-
+; file rule) -- the caller loops, not the grammar.
+clause := (directive | rule | dcg_rule | fact) DOT
+
+directive := RULE_OP goal:term
+rule      := head:compound_or_atom RULE_OP body:term
+dcg_rule  := head:compound_or_atom DCG_OP body:term
+fact      := compound_or_atom
+
+compound_or_atom := compound | atom_lit
+compound         := functor:atom_lit LPAREN args:arglist RPAREN
+arglist          := arg_term (COMMA arg_term)*
+
+atom_lit := ATOM | QATOM | BANG | SEMI
+
+list := LBRACKET RBRACKET
+      | LBRACKET items:arglist BAR tail:arg_term RBRACKET
+      | LBRACKET items:arglist RBRACKET
+
+; ISO's own `'{}'/1` term shape -- ordinary syntax anywhere a term can
+; appear, not DCG-specific; `Episteme.Dcg.translate_body/3` is what
+; gives it special meaning (an embedded plain goal, no list threading)
+; when it appears in a DCG rule's body specifically.
+curly := LBRACE inner:term RBRACE
+
+; The operator-precedence-parsed core: `primary` is each rule's only
+; declared dependency, exactly like `test/opexpr/opexpr.aether`'s own
+; `@native(...)` node -- everything else (parenthesized grouping,
+; explicit `f(...)` application, list syntax) stays ordinary PEG
+; structure around it.
+term     := @native("Aletheia.Reader.Pratt", "parse_term", primary) @hint(nullable: false, leading: (primary))
+arg_term := @native("Aletheia.Reader.Pratt", "parse_arg_term", primary) @hint(nullable: false, leading: (primary))
+
+; `OP`/`COMMA`/`SEMI` as a bare primary is what lets an operator symbol
+; appear as a plain argument, not applied -- e.g. `^` itself as `op/3`'s
+; own third argument in `:- op(200, xfy, ^).`, the exact directive that
+; registers it. Never conflicts with `term`'s own operator-position
+; handling: `parse_nud` only ever falls through to `primary` for a
+; token that either isn't a registered operator at all, or is
+; registered without a `:prefix` entry.
+primary := NUMBER | STRING | VAR | list | curly | compound_or_atom | OP | LPAREN inner:term RPAREN

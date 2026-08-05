@@ -1,0 +1,25 @@
+% Cut and if-then-else as control-flow tools -- the classic
+% "commit to the first matching case" idiom.
+
+% Using if-then-else: one clause, no choice points left behind at all.
+classify(X, negative) :- X < 0, !.
+classify(0, zero) :- !.
+classify(_, positive).
+
+% Same idea, written with nested if-then-else instead of cut+clause-order.
+sign(X, R) :- (X < 0 -> R = negative ; X =:= 0 -> R = zero ; R = positive).
+
+% max/3 with a cut: once we know which argument is bigger, there is
+% only ever one right answer, so commit to it.
+max(X, Y, X) :- X >= Y, !.
+max(X, Y, Y) :- X < Y.
+
+% once/1 vs real cut, side by side: cut commits to the enclosing
+% clause (picked_cut(X) only ever gives X=a); once/1 only limits its
+% OWN goal's solution count, it never touches clause selection at all
+% (picked_once(X) still finds both X=a and X=b on backtracking).
+picked_cut(a) :- !.
+picked_cut(b).
+
+picked_once(a) :- once(true).
+picked_once(b).
