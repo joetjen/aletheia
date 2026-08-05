@@ -168,29 +168,6 @@ Aletheia's own `mix.exs` currently depends on
 interim, until episteme's own v0.2-v0.5 work is released to Hex;
 switches back to a plain Hex version constraint once it is.
 
-## Status
-
-**The entire v0.1-v0.5 roadmap is implemented and tested**: the reader
-(real Prolog syntax, `op/3`-driven operator precedence, string
-literals, `{}/1`, DCG rule syntax), the term representation (including
-a real string type, a genuinely distinct term class from atoms), real
-unification and backtracking, a genuinely clause-scoped cut (not a
-`once/1` stand-in — see [the reference](guides/REFERENCE.md#cut) for
-why that distinction is load-bearing), the full control-construct and
-comparison family (`ignore/1`, `unify_with_occurs_check/2`, standard
-order of terms), `is/2` arithmetic (including trig/exp/log),
-exceptions, a runtime-mutable `op/3` operator table, the complete list
-predicate family (including the higher-order ones — `include`/
-`exclude`/`foldl`/`maplist`), aggregation (`findall`/`bagof`/`setof`),
-the dynamic database (`assert`/`retract`/`dynamic`/`abolish`/`clause`),
-the atom/number/string conversion family, `format/1,2`, DCG (`-->`/
-`phrase`), minimal I/O, and a REPL. Two narrow, deliberate gaps: `=../2`
-can't be tokenized by this reader's simplified lexer (use `univ/2`
-directly), and `format/2` has no column/radix directives — see
-[the reference](guides/REFERENCE.md) for exactly what's covered. Past
-v0.5, only the roadmap's explicitly unscheduled `later` bucket (module
-system, tabling, CLP(FD)) remains, and isn't started.
-
 ## Documentation
 
 - **[Generated API docs](https://joetjen.github.io/aletheia/)** —
