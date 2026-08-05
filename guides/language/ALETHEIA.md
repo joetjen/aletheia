@@ -1,4 +1,11 @@
-# Reference
+# Reference: the Aletheia language
+
+A systematic, lookup-style reference for the Aletheia *language* itself
+— the Prolog dialect, independent of how it's embedded in a host
+application. If you want to learn it step by step instead, see the
+[language tutorial](TUTORIAL.md); for using Aletheia as a library from
+Elixir (creating databases, querying them, the REPL), see the
+[library tutorial](../TUTORIAL.md) instead.
 
 Every predicate implemented and reachable from `.alp` source today,
 with its signature, semantics, and enough of an example to use it
@@ -501,12 +508,10 @@ Aletheia.query("phrase(digit(X), [5])", db)
 A `-->/2`-shaped clause term passed to `assert/1` translates and stores
 the same way, dynamically.
 
-## Top-level Elixir API
+## See also
 
-| Function | Description |
-| --- | --- |
-| `Aletheia.consult/1` | Loads a `.alp` file into a fresh database. |
-| `Aletheia.consult_string/2` | Loads source text into a database (default: a fresh one). |
-| `Aletheia.query/2` | Every solution of a goal, as a list of `%{"Var" => value}` maps. |
-| `Aletheia.query_once/2` | Just the first solution (or `:none`). |
-| `Aletheia.query_lazy/2` + `Aletheia.next_solution/2` | Pulls solutions one at a time instead of forcing the whole (possibly-infinite) search — what `Aletheia.Repl` is built on. |
+- [../TUTORIAL.md](../TUTORIAL.md) — using Aletheia as a library from
+  Elixir: `consult/1`/`consult_string/2`, `query/2` and friends, the
+  REPL.
+- [../CHEATSHEET.md](../CHEATSHEET.md) — quick reference for that same
+  embedding API.

@@ -1,15 +1,17 @@
 # Case study: auditing structured application logs
 
-Every other example in [guides/EXAMPLES.md](guides/EXAMPLES.md) is
-deliberately small — one feature, one paragraph, one screenful. This
+Every other example in
+[guides/language/ALETHEIA_EXAMPLES.md](guides/language/ALETHEIA_EXAMPLES.md)
+is deliberately small — one feature, one paragraph, one screenful. This
 one is deliberately not: a single, complete, real-world-shaped program
 that walks through *why* you'd reach for Aletheia, not just *how* to
 write one clause. It assumes you're comfortable with the vocabulary
-from [guides/TUTORIAL.md](guides/TUTORIAL.md) and pulls in a feature
-from nearly every corner of the language — a DCG grammar, real strings,
-the dynamic database, aggregation with existential quantification, and
-`format/2` — to solve one coherent problem rather than eight
-disconnected ones, written as one real `.alp` program rather than
+from [guides/language/TUTORIAL.md](guides/language/TUTORIAL.md) and
+pulls in a feature from nearly every corner of the language — a DCG
+grammar, real strings, the dynamic database, aggregation with
+existential quantification, and `format/2` — to solve one coherent
+problem rather than eight disconnected ones, written as one real
+`.alp` program rather than
 Elixir term-building (contrast with Episteme's own `CASE_STUDY.md`, in
 its own sibling repository, which solves the identical problem the
 other way, since Episteme has no reader of its own — worth comparing
@@ -42,16 +44,16 @@ Three things about Aletheia fit this well:
 
 - **No `logfmt` reader of its own, but a DCG when you need one.**
   Nothing ships a `logfmt` parser out of the box, but
-  [DCG support](guides/REFERENCE.md#dcg) lets you write the grammar as
+  [DCG support](guides/language/ALETHEIA.md#dcg) lets you write the grammar as
   a grammar, right in `.alp` source, not a hand-rolled loop of string
   splits.
 - **A mutable database for a line-at-a-time stream.** Log lines arrive
   one at a time, not as a batch you already have in memory; the
-  [dynamic database](guides/REFERENCE.md#database) (`assertz/1`) is
+  [dynamic database](guides/language/ALETHEIA.md#database) (`assertz/1`) is
   built for exactly that.
 - **Aggregation that groups for you.** "Which users have ≥ 3 failed
   logins" and "which IPs are shared across users" are both grouping
-  queries — [`setof/3`](guides/REFERENCE.md#aggregation)'s
+  queries — [`setof/3`](guides/language/ALETHEIA.md#aggregation)'s
   free-variable grouping does the work a hand-written accumulator
   would otherwise need.
 
@@ -59,7 +61,7 @@ Three things about Aletheia fit this well:
 
 ### Parsing: a DCG grammar for logfmt lines
 
-Tokenizing on whitespace is just [`split_string/4`](guides/REFERENCE.md#atom-number-and-string-conversions)
+Tokenizing on whitespace is just [`split_string/4`](guides/language/ALETHEIA.md#atom-number-and-string-conversions)
 — Aletheia already has that, so there's no reason to reinvent it. What
 the grammar below owns is everything *after* that: recognizing the
 shape of a line (four required fields in order, then a
@@ -79,15 +81,15 @@ a one-element *terminal* — "consume the next token from the input and
 call it `Token`" (a terminal doesn't have to be a literal; a variable
 inside one just captures whatever's there). The `{ ... }` half is an
 ordinary goal, spliced in without touching the input list —
-[`split_string/4`](guides/REFERENCE.md#atom-number-and-string-conversions)
+[`split_string/4`](guides/language/ALETHEIA.md#atom-number-and-string-conversions)
 breaks `"level=warn"` into `["level", "warn"]`, and
-[`atom_string/2`](guides/REFERENCE.md#atom-number-and-string-conversions)
+[`atom_string/2`](guides/language/ALETHEIA.md#atom-number-and-string-conversions)
 turns `"level"` into the atom `level` so field names can be matched and
 grouped on later.
 
 `fields/1` is the variable-length tail: zero or more `any_field/2`
 matches, collected into a list — same recursive shape as writing your
-own `sum_list/2` ([guides/EXAMPLES.md §7](guides/EXAMPLES.md#7-writing-your-own-recursive-list-rule)):
+own `sum_list/2` ([guides/language/ALETHEIA_EXAMPLES.md §7](guides/language/ALETHEIA_EXAMPLES.md#7-writing-your-own-recursive-list-rule)):
 an empty-list base case, and a case that peels one `field(K, V)` off
 the front and recurses on the rest, except here the recursion is
 consuming *tokens*, not walking an already-built list.
@@ -115,7 +117,7 @@ log_line(Ts, Level, Component, Event, Fields) -->
 
 `parse_log_line/6` is the seam between "a raw log line" and "a parsed
 grammar" — split the whole line on spaces, then
-[`phrase/2`](guides/REFERENCE.md#dcg) the grammar against the resulting
+[`phrase/2`](guides/language/ALETHEIA.md#dcg) the grammar against the resulting
 token list:
 
 ```prolog
@@ -148,7 +150,7 @@ Aletheia.query(
 Every line becomes a `log_entry(Ts, Level, Component, Event, Fields)`
 fact once parsed and ingested. `field_value/3` is a lookup into that
 trailing `Fields` list, built directly on
-[`member/2`](guides/REFERENCE.md#lists):
+[`member/2`](guides/language/ALETHEIA.md#lists):
 
 ```prolog
 field_value(Fields, Key, Value) :- member(field(Key, Value), Fields).
@@ -164,11 +166,11 @@ failed_login(User, Ip, Ts) :-
     field_value(Fields, ip, Ip).
 ```
 
-Now the two heuristics, each a [`setof/3`](guides/REFERENCE.md#aggregation)
+Now the two heuristics, each a [`setof/3`](guides/language/ALETHEIA.md#aggregation)
 grouped by exactly one of `failed_login/3`'s three fields, with the
 other free variable folded away via `^` (`Var^Goal` existentially
 quantifies `Var` out of the grouping — see
-[guides/REFERENCE.md#aggregation](guides/REFERENCE.md#aggregation)).
+[guides/language/ALETHEIA.md#aggregation](guides/language/ALETHEIA.md#aggregation)).
 `brute_force_suspect/1` groups by `User`, folding `Ip` away, and checks
 the group is big enough:
 
@@ -202,7 +204,7 @@ This is the dynamic-database half: parse each raw line and `assertz`
 the resulting fact, one line at a time — exactly the shape a real log
 stream arrives in. `ingest/1` does one line; `ingest_all/0` walks a
 stored list of them via `forall/2`, the same `forall/2` from
-[guides/REFERENCE.md](guides/REFERENCE.md#control):
+[guides/language/ALETHEIA.md](guides/language/ALETHEIA.md#control):
 
 ```prolog
 ingest(Line) :-
@@ -297,24 +299,24 @@ here that question just never comes up.
 
 ## What this exercises
 
-Every one of these is a full [guides/REFERENCE.md](guides/REFERENCE.md)
+Every one of these is a full [guides/language/ALETHEIA.md](guides/language/ALETHEIA.md)
 entry if you want the complete semantics:
 
-- [DCG grammars](guides/REFERENCE.md#dcg) — terminals, embedded goals
+- [DCG grammars](guides/language/ALETHEIA.md#dcg) — terminals, embedded goals
   (`{Goal}`), nonterminal recursion, `phrase/2`, all as real `-->`
   syntax straight from `.alp` source.
-- [Real strings](guides/REFERENCE.md#syntax) — double-quoted literals,
+- [Real strings](guides/language/ALETHEIA.md#syntax) — double-quoted literals,
   a genuinely distinct term class from atoms.
-- [The dynamic database](guides/REFERENCE.md#database) — `assertz/1`
+- [The dynamic database](guides/language/ALETHEIA.md#database) — `assertz/1`
   building up a fact base one line at a time.
-- [`setof/3`](guides/REFERENCE.md#aggregation) — grouping by a free
+- [`setof/3`](guides/language/ALETHEIA.md#aggregation) — grouping by a free
   variable, existentially quantifying another away with `^`.
-- [`split_string/4`](guides/REFERENCE.md#atom-number-and-string-conversions)
-  and [`atom_string/2`](guides/REFERENCE.md#atom-number-and-string-conversions)
+- [`split_string/4`](guides/language/ALETHEIA.md#atom-number-and-string-conversions)
+  and [`atom_string/2`](guides/language/ALETHEIA.md#atom-number-and-string-conversions)
   — the string/atom conversion family, used inside the grammar itself.
-- [`member/2`](guides/REFERENCE.md#lists), `length/2`, ordinary `>=`/`>`
-  arithmetic comparisons, and [`findall/3`](guides/REFERENCE.md#aggregation)
-  — the same everyday predicates from [guides/EXAMPLES.md](guides/EXAMPLES.md),
+- [`member/2`](guides/language/ALETHEIA.md#lists), `length/2`, ordinary `>=`/`>`
+  arithmetic comparisons, and [`findall/3`](guides/language/ALETHEIA.md#aggregation)
+  — the same everyday predicates from [guides/language/ALETHEIA_EXAMPLES.md](guides/language/ALETHEIA_EXAMPLES.md),
   doing real work here instead of toy work.
-- [`format/2`](guides/REFERENCE.md#io) — turning the query's answer
+- [`format/2`](guides/language/ALETHEIA.md#io) — turning the query's answer
   into the actual report text above.

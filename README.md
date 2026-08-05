@@ -7,10 +7,10 @@
 **New to Prolog or logic programming?** This README assumes some
 familiarity with the vocabulary (facts, rules, unification,
 backtracking, cut...) since it's written for evaluating Aletheia as a
-dependency. [guides/TUTORIAL.md](guides/TUTORIAL.md) explains every one
-of those terms from scratch, with plain-English walkthroughs and no
-assumed background at all — start there instead if any of the paragraph
-below is unfamiliar.
+dependency. [guides/language/TUTORIAL.md](guides/language/TUTORIAL.md)
+explains every one of those terms from scratch, with plain-English
+walkthroughs and no assumed background at all — start there instead if
+any of the paragraph below is unfamiliar.
 
 Aletheia is an embedded Prolog dialect for Elixir — Clojure is to
 Common Lisp as Aletheia is to Prolog. Classic Prolog surface syntax
@@ -44,9 +44,12 @@ Aletheia.query("grandparent(tom, Who)", db)
 #=> {:ok, [%{"Who" => :ann}, %{"Who" => :pat}]}
 ```
 
-See [guides/TUTORIAL.md](guides/TUTORIAL.md) for a full walkthrough, or
-[guides/CHEATSHEET.md](guides/CHEATSHEET.md) if you already know Prolog
-and just want the syntax/API at a glance.
+See [guides/language/TUTORIAL.md](guides/language/TUTORIAL.md) for a
+full walkthrough of the language, or
+[guides/language/ALETHEIA_CHEATSHEET.md](guides/language/ALETHEIA_CHEATSHEET.md)
+if you already know Prolog and just want the syntax at a glance. For
+*embedding* Aletheia into an Elixir application specifically, see
+[guides/TUTORIAL.md](guides/TUTORIAL.md) instead.
 
 ## Why embed a Prolog dialect in Elixir?
 
@@ -56,7 +59,7 @@ backtracking through alternatives automatically" — a rules engine, an
 expert-system-style diagnosis/eligibility check, a permissions/access-
 control policy expressed as facts instead of nested conditionals, a
 small parser or configuration DSL (Aletheia ships real
-[DCG support](guides/REFERENCE.md#dcg) for exactly that), or a
+[DCG support](guides/language/ALETHEIA.md#dcg) for exactly that), or a
 relational query over in-memory facts that would otherwise be a tangle
 of nested `Enum.filter`/`Enum.flat_map` calls hand-rolling what
 unification and backtracking already do for free. Prolog's own
@@ -126,7 +129,7 @@ a REPL.
   selection, subgoal sequencing, control constructs (`and`/`or`/
   `if_then`/`cut`/`not`/`call/N`/`once`/`ignore`/`phrase`) over
   `Ichor.Backtrack`, plus a real clause-scoped cut (see
-  [the reference](guides/REFERENCE.md#cut)) and `Episteme.Dcg`
+  [the reference](guides/language/ALETHEIA.md#cut)) and `Episteme.Dcg`
   (DCG rule/body translation).
 - **Builtins** (`Episteme.Builtins.*`) — arithmetic, exceptions, the
   full list-predicate family (including higher-order `include`/
@@ -172,27 +175,30 @@ switches back to a plain Hex version constraint once it is.
 
 - **[Generated API docs](https://joetjen.github.io/aletheia/)** —
   module and function reference, rebuilt from `main` on every push.
-- **[guides/TUTORIAL.md](guides/TUTORIAL.md)** — a from-scratch,
-  step-by-step walkthrough: install, consult a program, query it,
-  backtracking, cut, arithmetic, exceptions, lists, and the REPL. Start
-  here if you're new to Aletheia.
-- **[guides/REFERENCE.md](guides/REFERENCE.md)** — every implemented
-  predicate and syntax feature, with its signature, semantics, and a
-  verified example each.
-- **[guides/EXAMPLES.md](guides/EXAMPLES.md)** — complete, small,
-  runnable programs (a family tree, list processing, cut-based control
-  flow, exception handling), with runnable source under `examples/`.
+- **[guides/TUTORIAL.md](guides/TUTORIAL.md)** — embedding Aletheia
+  into an Elixir application, step by step: adding the dependency,
+  consulting a program, querying it (eagerly, once, or lazily), errors
+  at the host boundary, the REPL, and a worked example. Start here if
+  you're new to Aletheia and already know Prolog.
+- **[guides/EXAMPLES.md](guides/EXAMPLES.md)** — concrete, complete
+  embedding examples (incremental consulting, multi-tenant database
+  isolation, error handling, paginating a large search).
 - **[CASE_STUDY.md](CASE_STUDY.md)** — a single larger, real-world
   worked example: a structured-log auditor combining a DCG grammar,
   the dynamic database, and grouped aggregation, written as one real
   `.alp` program, with the intent, solution, and result spelled out end
   to end.
-- **[guides/CHEATSHEET.md](guides/CHEATSHEET.md)** — every predicate
-  and syntax feature, one page, for once you already know Prolog and
-  just need the exact name or argument order ([guides/REFERENCE.md](guides/REFERENCE.md)
-  is the page behind each row of it).
+- **[guides/CHEATSHEET.md](guides/CHEATSHEET.md)** — quick reference
+  for that same embedding API.
 - **[CHANGELOG.md](CHANGELOG.md)** — release history.
 - **[LICENSE](LICENSE)** — MIT.
+
+- **[Language tutorial](guides/language/TUTORIAL.md)** and
+  **[Language reference](guides/language/ALETHEIA.md)** — everything
+  about the Aletheia language itself (the Prolog dialect), independent
+  of how it's embedded. Start here if you're new to Prolog.
+- **[Language examples](guides/language/ALETHEIA_EXAMPLES.md)** and
+  **[Language cheatsheet](guides/language/ALETHEIA_CHEATSHEET.md)**.
 
 ## Development
 

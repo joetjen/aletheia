@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Documentation split into embedding vs. language layers, matching
+  logos's own `guides/language/` structure**: `guides/TUTORIAL.md`,
+  `guides/EXAMPLES.md`, and `guides/CHEATSHEET.md` are now entirely
+  about *using Aletheia as a library from Elixir* (all rewritten:
+  consult/query/query_once/query_lazy+next_solution, errors at the
+  host boundary, the REPL, multi-database isolation, pagination). The
+  previous content of those three files (the Prolog dialect itself)
+  moved to `guides/language/TUTORIAL.md`,
+  `guides/language/ALETHEIA.md` (was `REFERENCE.md`),
+  `guides/language/ALETHEIA_EXAMPLES.md` (was `EXAMPLES.md`), and
+  `guides/language/ALETHEIA_CHEATSHEET.md` (was `CHEATSHEET.md`), with
+  every embedding-specific bit (install, the REPL, the old "Top-level
+  Elixir API" table) trimmed out since that's the top-level guides'
+  own job now. `CASE_STUDY.md`, `README.md`, and `mix.exs`'s `extras`/
+  `groups_for_extras` updated throughout.
 - **Documentation overhaul, matching the depth of sibling projects
   (logos, episteme)**: README.md rewritten with a "Why embed a Prolog
   dialect in Elixir?" section, a `## Components` breakdown of the
@@ -61,8 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (routed through one `to_prolog_atom/1` instead of five separate
     call sites) the same way episteme's `Episteme.Builtins.Strings`
     already does.
-  - `guides/REFERENCE.md`/`CHEATSHEET.md`/`README.md` updated
-    throughout; see `test/aletheia/reader_test.exs`,
+  - Guides/`README.md` updated throughout; see
+    `test/aletheia/reader_test.exs`,
     `test/aletheia/reader/control_syntax_test.exs`, and
     `test/aletheia/end_to_end_test.exs` for the new coverage.
 - **Docs are now cross-referenced from the project config**: `mix.exs`
@@ -82,14 +97,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (none involve ISO punctuation, so `Aletheia.Reader.ControlSyntax`
   never needed to touch them). Previously undocumented and untested at
   this level; now covered in
-  [`guides/REFERENCE.md`](guides/REFERENCE.md#database) and
-  `test/aletheia/end_to_end_test.exs`.
+  [`guides/language/ALETHEIA.md`](guides/language/ALETHEIA.md#database)
+  and `test/aletheia/end_to_end_test.exs`.
 - **v0.1 milestone, complete**: reader, term representation,
   unification, SLD-resolution, a genuinely clause-scoped cut, core
   control constructs, `is/2` arithmetic, exceptions, a runtime-mutable
   `op/3` operator table, the v0.1 list predicate family, minimal I/O,
-  and consult/REPL. See [`guides/REFERENCE.md`](guides/REFERENCE.md)
-  for the full predicate list.
+  and consult/REPL. See
+  [`guides/language/ALETHEIA.md`](guides/language/ALETHEIA.md) for the
+  full predicate list.
 - **Reader**: a real Aether grammar
   (`lib/aletheia/reader/grammar.aether`) with `Ichor.Toolkit.Pratt`
   wired in via `@native(...)` for operator-precedence parsing — comma
@@ -103,8 +119,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `throw`/`catch` barriers, *not* a thin wrapper over `Ichor.Backtrack.Tree`'s
   `once/1` (which only limits solution count, not
   clause commitment) — see
-  [`guides/REFERENCE.md#cut`](guides/REFERENCE.md#cut) for the
-  distinguishing test cases. Every predicate call (and `call/N`,
+  [`guides/language/ALETHEIA.md#cut`](guides/language/ALETHEIA.md#cut)
+  for the distinguishing test cases. Every predicate call (and `call/N`,
   `once/1`, `\+/1`, each cut-opaque per ISO) mints its own barrier.
 - **Ahead-of-time grammar generation**: the grammar is compiled via
   `mix ichor.gen` (aliased `mix gen.grammar`) into a checked-in
