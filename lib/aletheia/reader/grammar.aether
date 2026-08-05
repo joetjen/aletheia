@@ -2,7 +2,7 @@
 @root clause
 @skip TRIVIA
 
-; Aletheia's real reader grammar (DESIGN.md §3/§11), built the way
+; Aletheia's real reader grammar, built the way
 ; ichor's own test suite already proves out end to end
 ; (test/prolog/prolog.aether + Prolog.Grammar + Prolog.Actions): real
 ; Prolog-shaped syntax, `term`'s only declared dependency is `primary`,
@@ -29,8 +29,8 @@
 ;   - Double-quoted string literals have no escape processing, same
 ;     simplification `QATOM` (quoted atoms) already has -- a literal
 ;     `"` can't appear inside one at all, not even backslash-escaped.
-;     Produces a real Elixir binary (see DESIGN.md's own
-;     `string_type_decision`), not a code list.
+;     Produces a real Elixir binary, a genuinely distinct term class
+;     from atoms, not a code list.
 ;   - `{Goal}` (ISO's own `'{}'/1` term shape -- ordinary syntax
 ;     anywhere, not DCG-specific, though DCG body translation is what
 ;     gives it special meaning) requires non-empty content; the bare

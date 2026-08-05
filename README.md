@@ -165,16 +165,15 @@ end
 Aletheia's own `mix.exs` currently depends on
 [Episteme](https://hex.pm/packages/episteme) as a **path** dependency
 (`{:episteme, path: "../episteme"}`, a sibling checkout required) —
-interim, until episteme's own v0.2-v0.5 work is released to Hex (see
-`DESIGN.md`'s `aletheia_episteme_path_dependency_interim`); switches
-back to a plain Hex version constraint once it is.
+interim, until episteme's own v0.2-v0.5 work is released to Hex;
+switches back to a plain Hex version constraint once it is.
 
 ## Status
 
 **The entire v0.1-v0.5 roadmap is implemented and tested**: the reader
 (real Prolog syntax, `op/3`-driven operator precedence, string
 literals, `{}/1`, DCG rule syntax), the term representation (including
-a real string type — see `DESIGN.md`'s `string_type_decision`), real
+a real string type, a genuinely distinct term class from atoms), real
 unification and backtracking, a genuinely clause-scoped cut (not a
 `once/1` stand-in — see [the reference](guides/REFERENCE.md#cut) for
 why that distinction is load-bearing), the full control-construct and
