@@ -157,6 +157,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dependency onto a sibling checkout — no local `episteme` checkout is
   needed to build `aletheia` anymore. Pulled in `ichor_runtime ~> 0.2`
   and `ichor ~> 0.3` transitively, both bumped here too.
+- **`episteme` bumped to `~> 0.2`**: covers everything `episteme` 0.2.0
+  shipped past its initial 0.1.0 release — standard order of terms,
+  term inspection (`functor/3`/`arg/3`/`univ/2`), the dynamic-database
+  round-out (`dynamic/1`/`abolish/1`/`clause/2`), `bagof/3`/`setof/3`,
+  a real string type plus the full atom/string conversion family,
+  `format/1,2`, and DCG support (`-->`/`phrase`) — all reachable from
+  `.alp` source now (see [CASE_STUDY.md](CASE_STUDY.md) for a worked
+  example touching most of it). Briefly a path dependency onto a
+  sibling checkout while this work was developed and verified against
+  `episteme`'s own `develop` branch; back to a plain Hex version
+  requirement now that it's released.
 - **New `Aletheia.Reader.ControlSyntax` module**: `episteme` 0.1.0
   renamed the control constructs and comparison operators it dispatches
   on from ISO Prolog punctuation to plain-English names (`,` → `and/2`,

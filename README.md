@@ -165,11 +165,9 @@ def deps do
 end
 ```
 
-Aletheia's own `mix.exs` currently depends on
-[Episteme](https://hex.pm/packages/episteme) as a **path** dependency
-(`{:episteme, path: "../episteme"}`, a sibling checkout required) —
-interim, until episteme's own v0.2-v0.5 work is released to Hex;
-switches back to a plain Hex version constraint once it is.
+Aletheia's own `mix.exs` depends on
+[Episteme](https://hex.pm/packages/episteme) as a regular Hex
+dependency (`{:episteme, "~> 0.2"}`) — no sibling checkout needed.
 
 ## Documentation
 
