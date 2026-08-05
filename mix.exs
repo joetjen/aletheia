@@ -136,19 +136,35 @@ defmodule Aletheia.MixProject do
     ]
   end
 
-  # Doc navigation order: README first (it's `main`), then the
-  # learn-the-library docs -- narrative walkthrough, full feature-by-
-  # feature reference, then worked programs (many small ones, then one
-  # large one) -- then the quick lookup doc, then project-process docs
-  # last. Mirrors episteme's own `extras/0` ordering rationale.
+  # Doc navigation order, mirroring logos's own `extras/0`: README
+  # first (it's `main`), then the embedding-layer guides (tutorial,
+  # examples, cheatsheet -- using Aletheia as a library from Elixir),
+  # then the language-layer guides in the same tutorial/reference/
+  # examples/cheatsheet shape (the Prolog dialect itself, independent
+  # of embedding), then the single large real-world case study, then
+  # project-process docs last.
   defp extras do
     [
       "README.md",
       "guides/TUTORIAL.md",
-      "guides/REFERENCE.md",
       "guides/EXAMPLES.md",
-      "CASE_STUDY.md",
       "guides/CHEATSHEET.md",
+      "guides/language/TUTORIAL.md",
+      # `:filename` is required here, not cosmetic: ExDoc's default extras
+      # filename is the source basename lowercased ("aletheia"), which is
+      # the exact same output path (`aletheia.html`) the top-level
+      # `Aletheia` module's own API page gets. On a case-insensitive
+      # filesystem (the default on macOS) those collide -- whichever
+      # ExDoc writes last silently overwrites the other on disk, so this
+      # guide's page either never renders or clobbers the module page
+      # depending on generation order, with no warning from ExDoc either
+      # way (it has no visibility into the underlying filesystem's
+      # case-folding). Same fix logos's own `mix.exs` applies to its
+      # analogous `guides/language/LOGOS.md`.
+      {"guides/language/ALETHEIA.md", [filename: "aletheia-language-reference"]},
+      "guides/language/ALETHEIA_EXAMPLES.md",
+      "guides/language/ALETHEIA_CHEATSHEET.md",
+      "CASE_STUDY.md",
       "CHANGELOG.md",
       "LICENSE"
     ]
@@ -156,7 +172,8 @@ defmodule Aletheia.MixProject do
 
   defp groups_for_extras do
     [
-      Guides: Path.wildcard("guides/*.md")
+      Guides: Path.wildcard("guides/*.md"),
+      Language: Path.wildcard("guides/language/*.md")
     ]
   end
 

@@ -1,26 +1,32 @@
-# Tutorial
+# Tutorial: embedding Aletheia in an Elixir application
 
-A step-by-step walkthrough of Aletheia, building up from a single fact
-to cut, exceptions, and lists. Every example here is real, runnable
-Aletheia/Prolog — paste it into `iex -S mix` as you go.
+This tutorial is about *using Aletheia as a library from Elixir host
+code* — building databases, consulting source, running queries,
+calling back and forth between Aletheia and Elixir. If you want to
+learn the Aletheia language itself (the Prolog dialect: facts, rules,
+cut, DCG) instead, see the
+[language tutorial](language/TUTORIAL.md) — this one assumes no more
+Prolog knowledge than `parent(tom, bob).`.
 
-## 1. Install
+## 1. Add the dependency
 
 ```elixir
+# mix.exs
 def deps do
   [
-    {:aletheia, path: "../aletheia"}
+    {:aletheia, path: "path/to/aletheia"}
   ]
 end
 ```
 
-(Not yet published to Hex — see the [README](../README.md#installation).)
+Not yet published to Hex — see the [README](../README.md#installation)
+for the current path/git dependency form. Then `mix deps.get`.
 
-## 2. Your first program
+## 2. Load a program
 
-Aletheia programs are made of **facts** and **rules**, exactly like any
-other Prolog. Load some source with `consult_string/2` (or `consult/1`
-for a file), then ask questions of it with `query/2`:
+An `Episteme.Database` (Aletheia's clause store) starts empty;
+`Aletheia.consult_string/2` parses source text and adds every fact/rule
+it finds to one, returning `{:ok, db}`:
 
 ```elixir
 {:ok, db} = Aletheia.consult_string("""
@@ -29,184 +35,111 @@ parent(tom, liz).
 parent(bob, ann).
 parent(bob, pat).
 """)
+```
 
+`Aletheia.consult/1` does the same from a `.alp` file on disk. Nothing
+about a database is a global singleton — each `consult_string/2`/
+`consult/1` call you *don't* pass a previous `db` into builds a
+completely fresh, independent one, so an application embedding
+Aletheia several times over (one database per tenant, say) gets
+genuinely isolated worlds:
+
+```elixir
+{:ok, db2} = Aletheia.consult_string("parent(x, y).")
+Aletheia.query("parent(tom, _)", db2)
+#=> {:ok, []}   -- db2 never saw db's own facts
+```
+
+Pass a previous `db` as the second argument to keep adding clauses to
+the *same* database instead — useful for loading a program across
+several files, or letting a running application `assertz` new facts
+into a database it already has open (see
+[the dynamic database](language/ALETHEIA.md#database)).
+
+## 3. Query it
+
+```elixir
 Aletheia.query("parent(tom, X)", db)
 #=> {:ok, [%{"X" => :bob}, %{"X" => :liz}]}
 ```
 
-`query/2` returns *every* solution, as a list of `%{"VarName" =>
-value}` maps — one map per way the goal can succeed, in the order
-Aletheia found them (declaration order, depth-first). Variables you
-don't care about can stay anonymous with `_`:
+`Aletheia.query/2` returns *every* solution, eagerly, as a list of
+`%{"VarName" => value}` maps — one per way the goal can succeed. The
+values are already fully resolved `Episteme.Term`-shaped data (plain
+Elixir atoms/numbers/strings/lists, or `%Episteme.Term.Compound{}`/
+`%Episteme.Term.Var{}` structs for anything more structured), ready to
+pattern-match on in ordinary Elixir code.
 
-```elixir
-Aletheia.query("parent(tom, _)", db)
-#=> {:ok, [%{}, %{}]}  -- two solutions, no variables bound in either
-```
-
-If you only want the first solution, use `query_once/2`:
+If you only want the first solution, `Aletheia.query_once/2` is
+cheaper — it stops searching the moment it finds one, returning `{:ok,
+solution}` or `:none` instead of a list:
 
 ```elixir
 Aletheia.query_once("parent(tom, X)", db)
 #=> {:ok, %{"X" => :bob}}
+
+Aletheia.query_once("parent(nonexistent, X)", db)
+#=> :none
 ```
 
-## 3. Rules and recursion
+## 4. Pulling solutions lazily
 
-A rule's head and body share whatever variables they mention; the
-comma is real Prolog conjunction (a genuine `xfy(1000)` operator here,
-not just grammar-level punctuation — see the
-[reference](REFERENCE.md#syntax) if you're curious why that matters):
+`query/2` forces the *entire* search before returning — fine for a
+goal with a handful of solutions, but wasteful (or outright non-
+terminating) for one with an unbounded number.
+`Aletheia.query_lazy/2` + `Aletheia.next_solution/2` pull one solution
+at a time instead, computing no more of the search than you actually
+ask to see:
 
 ```elixir
-{:ok, db} = Aletheia.consult_string("""
-parent(tom, bob).
-parent(tom, liz).
-parent(bob, ann).
-parent(bob, pat).
-parent(pat, jim).
+{:ok, {stream, vars}} = Aletheia.query_lazy("parent(tom, X)", db)
 
-grandparent(X, Z) :- parent(X, Y), parent(Y, Z).
-ancestor(X, Y) :- parent(X, Y).
-ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
-""")
+{:solution, solution, rest} = Aletheia.next_solution(stream, vars)
+solution
+#=> %{"X" => :bob}
 
-Aletheia.query("grandparent(tom, Who)", db)
-#=> {:ok, [%{"Who" => :ann}, %{"Who" => :pat}]}
-
-Aletheia.query("ancestor(tom, Who)", db)
-#=> {:ok, [%{"Who" => :bob}, %{"Who" => :liz}, %{"Who" => :ann},
-#          %{"Who" => :pat}, %{"Who" => :jim}]}
+{:solution, solution2, _rest2} = Aletheia.next_solution(rest, vars)
+solution2
+#=> %{"X" => :liz}
 ```
 
-`ancestor/2` recurses through `parent/2` exactly the way you'd expect
-from any Prolog system — Aletheia's engine is a real SLD-resolution
-loop over a lazy search tree, not a special-cased evaluator.
+`next_solution/2` returns `:none` once the search is exhausted (or
+`{:error, term}` if evaluating the next solution raises). This is
+exactly what `Aletheia.Repl` is built on (§6 below) — a real Prolog
+REPL can't force a whole infinite search just to show you the first
+answer.
 
-## 4. Arithmetic
+## 5. Errors
 
-`is/2` evaluates the right-hand side as an arithmetic expression and
-unifies the result with the left-hand side, with the standard operator
-precedence (`*`/`/` bind tighter than `+`/`-`, unary minus tighter
-still):
+An uncaught Prolog exception — a real `throw/1` nothing in the program
+caught, or one of the standard errors Aletheia raises automatically
+(dividing by zero, calling an undefined predicate, ...) — surfaces as
+`{:error, term}` from `query/2`/`query_once/2`/`next_solution/2`,
+never as a crash in your Elixir process:
 
 ```elixir
-Aletheia.query("X is 2 + 3 * 4", Episteme.Database.new())
-#=> {:ok, [%{"X" => 14}]}
+Aletheia.query("X is 1 / 0", db)
+#=> {:error, %Episteme.Term.Compound{name: :error, args: [
+#     %Episteme.Term.Compound{name: :domain_error, args: [:non_zero, 0]},
+#     _
+#   ]}}
 
-Aletheia.query("X is 7 // 2", Episteme.Database.new())
-#=> {:ok, [%{"X" => 3}]}
+Aletheia.query("nonexistent_predicate(X)", db)
+#=> {:error, %Episteme.Term.Compound{name: :error, args: [
+#     %Episteme.Term.Compound{name: :existence_error, args: [
+#       :procedure, %Episteme.Term.Compound{name: :/, args: [:nonexistent_predicate, 1]}
+#     ]}, _
+#   ]}}
 ```
 
-The six arithmetic comparisons (`=:=`, `=\=`, `<`, `>`, `=<`, `>=`)
-evaluate both sides the same way `is/2` does:
+Both follow ISO's own `error(Formal, _)` shape (see
+[Exceptions](language/ALETHEIA.md#exceptions)) — pattern-match on
+`Formal`'s own functor (`domain_error`, `existence_error`,
+`type_error`, or whatever your own program `throw/1`s) to handle
+specific cases, or just treat any `{:error, _}` as "this query failed
+badly" if you don't need to distinguish why.
 
-```elixir
-{:ok, db} = Aletheia.consult_string("""
-classify(X, positive) :- X > 0.
-classify(0, zero).
-classify(X, negative) :- X < 0.
-""")
-
-Aletheia.query("classify(5, What)", db)
-#=> {:ok, [%{"What" => :positive}]}
-```
-
-## 5. Control: disjunction and if-then-else
-
-`;` is disjunction, `->` is if-then; together, `(Cond -> Then ; Else)`
-is if-then-else, committing to the *first* solution of `Cond`:
-
-```elixir
-{:ok, db} = Aletheia.consult_string("""
-sign(X, R) :- (X > 0 -> R = positive ; X < 0 -> R = negative ; R = zero).
-""")
-
-Aletheia.query("sign(5, R)", db)
-#=> {:ok, [%{"R" => :positive}]}
-Aletheia.query("sign(0, R)", db)
-#=> {:ok, [%{"R" => :zero}]}
-```
-
-## 6. Cut
-
-`!` commits to every choice made since entering the *current clause* —
-no more alternatives for that clause's own remaining goals, and no
-more sibling clauses for that predicate. This is stricter than "stop
-after the first solution" (that's `once/1`); the difference shows up
-the moment a cut is followed by something that fails:
-
-```elixir
-{:ok, db} = Aletheia.consult_string("""
-p(1) :- !, fail.
-p(2).
-""")
-
-Aletheia.query("p(X)", db)
-#=> {:ok, []}
-```
-
-`p(X)` fails outright: cut commits to clause 1 *before* `fail` ever
-runs, so clause 2 is never tried — a `once/1`-based cut would instead
-still fall through to `p(2)`. See
-[`guides/REFERENCE.md#cut`](REFERENCE.md#cut) for the full set of
-cut-scoping rules (and why cut inside a called predicate never affects
-its caller).
-
-## 7. Negation as failure
-
-`\+ Goal` succeeds exactly when `Goal` has no solution, binding
-nothing either way:
-
-```elixir
-{:ok, db} = Aletheia.consult_string("""
-even(X) :- 0 is X mod 2.
-odd(X) :- \\+ even(X).
-""")
-
-Aletheia.query("odd(3)", db)
-#=> {:ok, [%{}]}
-Aletheia.query("odd(4)", db)
-#=> {:ok, []}
-```
-
-## 8. Exceptions
-
-`throw/1` raises a term; `catch(Goal, Catcher, Recovery)` runs `Goal`,
-and if it throws something that unifies with `Catcher`, runs `Recovery`
-instead of propagating the exception further:
-
-```elixir
-{:ok, db} = Aletheia.consult_string("""
-safe_div(X, Y, R) :- catch(R is X / Y, error(_, _), R = undefined).
-""")
-
-Aletheia.query("safe_div(10, 2, R)", db)
-#=> {:ok, [%{"R" => 5}]}
-Aletheia.query("safe_div(10, 0, R)", db)
-#=> {:ok, [%{"R" => :undefined}]}
-```
-
-An exception nothing in your program catches surfaces as `{:error,
-term}` from `Aletheia.query/2` itself, rather than crashing your
-Elixir process.
-
-## 9. Lists
-
-Lists use native `[H|T]` syntax throughout, backed by real Elixir lists:
-
-```elixir
-Aletheia.query("append([1, 2], [3, 4], X)", Episteme.Database.new())
-#=> {:ok, [%{"X" => [1, 2, 3, 4]}]}
-
-Aletheia.query("member(X, [a, b, c])", Episteme.Database.new())
-#=> {:ok, [%{"X" => :a}, %{"X" => :b}, %{"X" => :c}]}
-```
-
-See [`guides/REFERENCE.md#lists`](REFERENCE.md#lists) for the full v0.1
-list predicate family.
-
-## 10. The REPL
+## 6. The REPL
 
 `Aletheia.Repl.start/1` takes a list of files to consult, then drops
 you into a `?- ` prompt — type a goal, see its bindings, and (matching
@@ -222,16 +155,58 @@ X = liz
 ?-
 ```
 
-The REPL pulls solutions one at a time (`Aletheia.query_lazy/2` +
-`next_solution/2`) — it never computes more of a search than you
-actually ask to see, so it's safe to use against a goal with an
-unbounded (or even infinite) number of solutions.
+It's built directly on `query_lazy/2` + `next_solution/2` (§4 above) —
+pulling one solution at a time is what makes it safe to run a REPL
+query with an unbounded (or infinite) number of solutions; it only
+ever computes as many as you actually ask to see via `;`.
+
+## 7. A worked example: a scripted rules engine
+
+A realistic reason to embed Aletheia: letting a host application load
+small, user-editable rules without recompiling — a discount policy,
+here, backed by a handful of facts and clause-order-plus-cut picking
+the first rule that applies:
+
+```elixir
+rules = """
+vip(alice).
+orders(bob, 15).
+orders(carol, 3).
+
+discount(Customer, 20) :- vip(Customer), !.
+discount(Customer, 10) :- orders(Customer, N), N >= 10, !.
+discount(_, 0).
+"""
+
+{:ok, db} = Aletheia.consult_string(rules)
+
+for customer <- [:alice, :bob, :carol, :dave] do
+  {:ok, %{"D" => percent}} = Aletheia.query_once("discount(#{customer}, D)", db)
+  {customer, percent}
+end
+#=> [alice: 20, bob: 10, carol: 0, dave: 0]
+```
+
+`alice` matches the first rule (`vip/1`) and stops there via `!` — the
+second rule never even runs for her. `bob` has enough orders to match
+the second rule; `carol` doesn't (only 3), so she falls through to the
+catch-all `discount(_, 0)`, same as `dave`, who isn't mentioned in the
+rules at all. Swap `rules` for text read from a file, a database
+column, or a config-management system, and the host application never
+needs to know the specific policy in advance — only that querying
+`discount(Customer, D)` against whatever it loaded answers the
+question.
 
 ## Where next
 
-- **[Reference](REFERENCE.md)** — every implemented predicate, in
-  full, with signatures and semantics.
-- **[Cheatsheet](CHEATSHEET.md)** — the same ground, condensed to a
-  lookup table.
-- **[Examples](EXAMPLES.md)** — complete worked programs, runnable from
-  `examples/`.
+- **[Language tutorial](language/TUTORIAL.md)** — the Aletheia
+  language itself: facts, rules, cut, arithmetic, exceptions, lists,
+  and more, step by step.
+- **[Language reference](language/ALETHEIA.md)** — every predicate and
+  syntax feature, in full.
+- **[Cheatsheet](CHEATSHEET.md)** — quick reference for this same
+  embedding API.
+- **[Examples](EXAMPLES.md)** — more complete, concrete embedding
+  examples.
+- **[CASE_STUDY.md](../CASE_STUDY.md)** — a single larger, real-world
+  worked example.
